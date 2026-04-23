@@ -1,5 +1,5 @@
 // api.js — complete file
-const BACKEND_URL = window.BACKEND_URL || 'https://api.contextcrunch.io';
+const BACKEND_URL = window.BACKEND_URL || 'https://contextcrunch-api-753105082654.us-central1.run.app';
 
 const API = {
   async analyze(text, model='claude', plan='sonnet'){
