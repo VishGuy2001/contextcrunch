@@ -67,7 +67,7 @@
   <div class="tool-wrap">
     <span class="section-label">The tool</span>
     <h1 class="section-title">Crunch your context</h1>
-    <p class="section-sub" style="margin-bottom:2rem">Select your model and plan, paste your conversation or upload a file, and see exactly what it's costing you.</p>
+    <p class="section-sub" style="margin-bottom:2rem">Pick your AI, paste your conversation or upload a file, and see exactly what's happening — instantly.</p>
 
     <!-- MODEL SELECTOR -->
     <div class="sel-row">
@@ -80,7 +80,7 @@
     </div>
     <div class="sel-row">
       <span class="sel-lbl">Plan</span>
-      <div class="plan-btns" id="plan-btns"></div>
+      <div id="plan-btns"></div>
     </div>
 
     <div class="beh-note" id="beh-note">
@@ -95,11 +95,11 @@
           <span>Paste conversation or upload file</span>
           <span class="token-live" id="token-live">0 tokens</span>
         </div>
-        <textarea class="main-ta" id="main-ta" placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response&#10;&#10;Text conversations only in v0.1"></textarea>
-        <label class="file-zone" for="file-input">Drop a file or click · PDF · PPTX · DOCX · XLSX · Images · Code</label>
-        <input type="file" id="file-input" style="display:none" accept=".txt,.md,.csv,.pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.webp,.py,.js,.ts,.java,.cpp,.sql,.html,.css,.json">
+        <textarea class="main-ta" id="main-ta" placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response"></textarea>
+        <label class="file-zone" id="file-zone" for="file-input">Drop any file or click · PDF · PPTX · DOCX · XLSX · Images · Code · CSV · Text</label>
+        <input type="file" id="file-input" style="display:none">
         <div class="input-footer">
-          <span class="input-note" id="file-status">Text only in v0.1</span>
+          <span class="input-note" id="file-status">Supports PDF, PPTX, DOCX, images, code and more</span>
           <div style="display:flex;gap:.5rem">
             <button class="btn btn-secondary" id="analyze-btn" style="font-size:.85rem;padding:.55rem 1.2rem" disabled>Analyze</button>
             <button class="btn btn-primary" id="compress-btn" style="font-size:.85rem;padding:.55rem 1.2rem" disabled>Compress →</button>
@@ -108,12 +108,11 @@
       </div>
 
       <!-- GAUGES -->
-      <div class="gauges-pane" id="gauges-pane">
-        <div style="font-size:.82rem;color:var(--muted);font-family:var(--mono);padding:1rem;text-align:center">Paste text to see analysis</div>
-      </div>
+      <div class="gauges-pane" id="gauges-pane"></div>
     </div>
 
-    <div class="loading" id="loading"><span class="spin">◌</span> <span id="loading-msg" class="loading-dots">Analyzing</span></div>
+    <div class="loading" id="loading"><span id="loading-msg">Analyzing</span></div>
+
     <div id="output-section" style="display:none">
       <div class="out-box">
         <div class="out-hdr">
@@ -127,17 +126,21 @@
         <div class="out-note" id="out-note"></div>
       </div>
     </div>
+
     <div class="math-section" id="math-section" style="display:none">
       <div class="math-hdr">
-        <div><span class="section-label">Math behind your result</span><h3 style="font-family:var(--serif);font-size:1.2rem">Why this conversation is wasteful</h3></div>
+        <div>
+          <span class="section-label">Behind your result</span>
+          <h3 style="font-family:var(--serif);font-size:1.2rem">What the numbers mean</h3>
+        </div>
         <div class="level-toggle">
           <button class="level-btn active" data-level="simple">Simple</button>
           <button class="level-btn" data-level="technical">Technical</button>
-          <button class="level-btn" data-level="academic">Academic</button>
         </div>
       </div>
       <div class="math-area" id="math-area"></div>
     </div>
+
   </div>
 </main>
 <div id="footer-root"></div>

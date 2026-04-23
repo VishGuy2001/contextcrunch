@@ -55,12 +55,15 @@
 </style>`;
 
   const root = document.getElementById('nav-root');
-  if(root){ root.innerHTML = html;
-    document.getElementById('nav-ham').addEventListener('click', ()=> document.getElementById('nav-links').classList.toggle('open'));
+  if(root){
+    root.innerHTML = html;
+    document.getElementById('nav-ham').addEventListener('click', () =>
+      document.getElementById('nav-links').classList.toggle('open')
+    );
   }
 
   // Pre-warm backend silently on every page load
-  const BACKEND = window.BACKEND_URL || 'https://api.contextcrunch.io';
+  const BACKEND = window.BACKEND_URL || 'https://contextcrunch-api-753105082654.us-central1.run.app';
   window.BACKEND_URL = BACKEND;
-  fetch(BACKEND+'/health').catch(()=>{});
+  fetch(BACKEND + '/health').catch(() => {});
 })();
