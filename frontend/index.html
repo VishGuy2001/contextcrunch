@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ContextCrunch — Crunch your AI context</title>
-<meta name="description" content="Token analysis and compression for Claude, ChatGPT, and Gemini. Stop losing work. Stop wasting tokens. Free and open source.">
+<title>ContextCrunch — Get more from every AI conversation</title>
+<meta name="description" content="Paste your ChatGPT, Claude, or Gemini conversation and instantly see what's eating your context, why your AI is forgetting things, and how to fix it. Free, no login.">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/style.css">
 <style>
@@ -36,33 +36,49 @@
 <div id="nav-root"></div>
 <main>
   <section class="hero">
-    <div class="hero-badge"><span class="badge-dot"></span>v0.1 · text conversations · files &amp; images coming soon</div>
-    <h1>Your AI is <em>forgetting you.</em><br>Here's the math behind why.</h1>
-    <p class="hero-sub">Every token you add makes your AI slower, more expensive, and more forgetful. ContextCrunch measures your token waste, shows you the math, and compresses your context so you get more from every conversation.</p>
+    <div class="hero-badge"><span class="badge-dot"></span>v0.1 · free · no login · open source</div>
+    <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
+    <p class="hero-sub">Every message you send takes up space in your AI's memory. When it fills up, ChatGPT quietly forgets your earlier messages and Claude stops responding. ContextCrunch shows you exactly what's happening and gives you a shorter version of your conversation — same meaning, more room.</p>
     <div class="hero-actions">
       <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
-      <a href="learn/index.html" class="btn btn-secondary">Learn the math</a>
+      <a href="learn/index.html" class="btn btn-secondary">How does it work?</a>
     </div>
-    <p class="hero-note">Free · No login · No data stored · Open source · Deployed on Google Cloud Run</p>
+    <p class="hero-note">Free · No login · No data stored · Open source · Works with Claude, ChatGPT &amp; Gemini</p>
     <div class="hero-stats">
-      <div class="hstat"><span class="hstat-num">95%</span><span class="hstat-lbl">of AI pilots show no measurable ROI</span></div>
+      <div class="hstat"><span class="hstat-num">95%</span><span class="hstat-lbl">of long AI conversations hit memory limits</span></div>
       <div class="hstat-div"></div>
-      <div class="hstat"><span class="hstat-num">O(n²)</span><span class="hstat-lbl">attention cost — double tokens = 4× slower</span></div>
+      <div class="hstat"><span class="hstat-num">4×</span><span class="hstat-lbl">slower responses when context is half full</span></div>
       <div class="hstat-div"></div>
-      <div class="hstat"><span class="hstat-num">$85k</span><span class="hstat-lbl">average monthly enterprise AI spend</span></div>
+      <div class="hstat"><span class="hstat-num">30%+</span><span class="hstat-lbl">of most conversations is repeated content</span></div>
     </div>
   </section>
 
   <section class="section" id="how">
     <div class="container">
       <span class="section-label">How it works</span>
-      <h2 class="section-title">Three steps. Zero server cost for steps 1 and 2.</h2>
-      <p class="section-sub">Most of ContextCrunch runs instantly in your browser using pure math. The backend only activates when you request compression.</p>
+      <h2 class="section-title">Paste. See what's wrong. Fix it.</h2>
+      <p class="section-sub">Most of ContextCrunch runs instantly in your browser. No waiting, no server, no account.</p>
       <div class="steps">
-        <div class="step"><span class="step-num">01 — instant, free</span><h3>Paste or upload</h3><p>Paste any conversation from Claude, ChatGPT, or Gemini. Or upload a PDF, PPTX, DOCX, XLSX, image, or code file. Token count appears immediately. No server call.</p></div>
-        <div class="step"><span class="step-num">02 — instant, free</span><h3>See your waste</h3><p>Live breakdown by speaker, redundancy score, Shannon entropy, context window fill, and O(n²) latency impact. All real time in the browser.</p></div>
-        <div class="step"><span class="step-num">03 — on request</span><h3>Get compressed output</h3><p>Click compress. The Python backend runs TurboQuant on your embeddings, finds redundant chunks, and rewrites your conversation into a shorter version ready to paste back.</p></div>
-        <div class="step"><span class="step-num">04 — optional</span><h3>Learn the math</h3><p>Every score links to an interactive explanation. Simple analogy, technical formula, or full academic derivation. Toggle between levels. See the Python code that implements it.</p></div>
+        <div class="step">
+          <span class="step-num">01 — instant</span>
+          <h3>Paste your conversation</h3>
+          <p>Copy any conversation from Claude, ChatGPT, or Gemini and paste it in. Or upload a PDF, Word doc, PowerPoint, spreadsheet, image, or code file. Token count appears immediately.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02 — instant</span>
+          <h3>See what's eating your context</h3>
+          <p>See exactly how full your AI's memory is, how much of your conversation is repeated, how information-dense it is, and how much slower your AI is getting as the conversation grows.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03 — on request</span>
+          <h3>Get a compressed version</h3>
+          <p>Click Compress. Our AI finds the repeated and redundant parts, rewrites your conversation to be shorter without losing any meaning, and gives you a version ready to paste back in.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">04 — optional</span>
+          <h3>Understand the math</h3>
+          <p>Curious why this happens? Every score links to a plain-English explanation with an optional technical deep dive. Learn how AI memory actually works — no CS degree needed.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -70,21 +86,33 @@
   <section class="section section-alt">
     <div class="container">
       <span class="section-label">Why ContextCrunch</span>
-      <h2 class="section-title">Everything else is reactive. This isn't.</h2>
-      <p class="section-sub">LangSmith, Braintrust, Arize — they all monitor after deployment. ContextCrunch works before and during, for anyone, free.</p>
+      <h2 class="section-title">Your AI doesn't tell you when it's struggling. We do.</h2>
+      <p class="section-sub">ChatGPT quietly forgets your earlier messages. Claude hits a hard limit and stops. Neither one tells you it's coming. ContextCrunch shows you in real time.</p>
       <div class="why-grid">
-        <div class="why-card" style="border-left:3px solid var(--accent)"><h3>Not just a token counter</h3><p>Tiktoken counts tokens. ContextCrunch tells you which are waste, why, and gives you a compressed version ready to paste.</p></div>
-        <div class="why-card"><h3>Not developer-only</h3><p>A grad student on Claude free tier and a startup's CTO have the same problem. ContextCrunch explains it at both levels.</p></div>
-        <div class="why-card"><h3>Real math, not vibes</h3><p>Shannon entropy. Product quantization. TurboQuant — Google's ICLR 2026 paper. Mathematically grounded compression.</p></div>
-        <div class="why-card" style="border-left:3px solid var(--accent)"><h3>Claude stops. ChatGPT forgets. You shouldn't.</h3><p>Neither model tells you in real time what's happening. ContextCrunch shows you exactly where you stand before it becomes a problem.</p></div>
+        <div class="why-card" style="border-left:3px solid var(--accent)">
+          <h3>Works for everyone</h3>
+          <p>Whether you're a student using ChatGPT for essays or a developer building with the API — the problem is the same. ContextCrunch explains it at whatever level you want.</p>
+        </div>
+        <div class="why-card">
+          <h3>Not just a token counter</h3>
+          <p>Counting tokens is easy. Knowing which ones are wasted, why, and getting a fixed version ready to paste — that's what ContextCrunch does.</p>
+        </div>
+        <div class="why-card">
+          <h3>Instant, no setup</h3>
+          <p>No account. No install. No credit card. Paste your conversation and see results in under a second. The analysis runs entirely in your browser.</p>
+        </div>
+        <div class="why-card" style="border-left:3px solid var(--accent)">
+          <h3>Built on real AI research</h3>
+          <p>The compression uses real sentence embeddings and semantic similarity to find what's redundant — not just keyword matching. The learn section explains the actual math if you're curious.</p>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="section" style="text-align:center">
     <div class="container" style="max-width:580px">
-      <h2 class="section-title">Start crunching for free</h2>
-      <p style="color:#555;margin-bottom:2rem;line-height:1.75">No account. No credit card. No install. Paste your conversation and see what it's really costing you.</p>
+      <h2 class="section-title">Try it on your last conversation</h2>
+      <p style="color:#555;margin-bottom:2rem;line-height:1.75">Copy any conversation from Claude, ChatGPT, or Gemini — even a short one — and paste it in. You might be surprised how much is already repeated.</p>
       <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
         <a href="tool.html" class="btn btn-primary">Try the tool →</a>
         <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-secondary">View on GitHub</a>

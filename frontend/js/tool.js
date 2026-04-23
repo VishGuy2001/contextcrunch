@@ -15,8 +15,8 @@ const MODELS = {
       sonnet: 'Custom BPE — ~3.5 chars/token',
       opus:   'New tokenizer in Opus 4.7 — ~2.6 chars/token (up to 35% more tokens than older Claude)',
     },
-    behavior: 'Full recall — keeps entire conversation. Re-reads everything every message. Thinking tokens on Sonnet/Opus count invisibly.',
-    warning: 'Claude re-reads your full conversation on every message. Opus 4.7 uses a new tokenizer — up to 35% more tokens for the same text.',
+    behavior: 'Full recall — keeps your entire conversation and re-reads it on every message. You will hit the limit eventually and Claude will stop.',
+    warning: 'Claude re-reads your full conversation on every message. The more you write, the slower and more expensive it gets. Opus 4.7 also uses a new tokenizer — up to 35% more tokens for the same text.',
   },
   chatgpt: {
     label: 'ChatGPT',
@@ -32,8 +32,8 @@ const MODELS = {
       plus:  'cl100k BPE — ~4.0 chars/token — vocab 100,277',
       pro:   'cl100k BPE — ~4.0 chars/token — vocab 100,277',
     },
-    behavior: 'Silent truncation — drops your oldest messages without telling you when context fills.',
-    warning: 'ChatGPT quietly forgets older messages when context fills. You never get a hard stop — responses just quietly lose accuracy on earlier context.',
+    behavior: 'Silent forgetting — when your conversation gets too long, ChatGPT quietly drops your oldest messages without telling you.',
+    warning: 'ChatGPT is quietly forgetting your earlier messages. It never tells you — responses just gradually lose track of things you said earlier in the conversation.',
   },
   gemini: {
     label: 'Gemini',
@@ -49,8 +49,8 @@ const MODELS = {
       pro:   'SentencePiece unigram — ~4.5 chars/token — vocab 256,000',
       ultra: 'SentencePiece unigram — ~4.5 chars/token — vocab 256,000',
     },
-    behavior: 'Largest context window. Rate limits hit before token limits on free tier. Quality can degrade at very long contexts.',
-    warning: 'Gemini Free: 15 req/min rate limit hits long before the 1M token window. Paid tiers may see quality degradation at very long contexts.',
+    behavior: 'Largest context window of the three. On the free tier, rate limits kick in long before you hit the token limit.',
+    warning: 'Gemini Free hits rate limits long before the 1M token window. On paid tiers, response quality can drop on very long conversations even within the limit.',
   },
 };
 
@@ -66,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(fi) fi.setAttribute('accept', ACCEPTED_FILES);
   const fz = document.getElementById('file-zone');
   if(fz) fz.textContent = 'Drop any file or click · PDF · PPTX · DOCX · XLSX · Images · Code · CSV · Text';
-  // Show gauges immediately on load with zero state
   showEmptyGauges();
 });
 
@@ -74,35 +73,35 @@ function showEmptyGauges(){
   const limit = TC.getLimit(model, plan);
   document.getElementById('gauges-pane').innerHTML = `
     <div class="gauge-card" style="border-left:3px solid var(--accent)">
-      <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Ready to analyze</div>
-      <p style="font-size:.82rem;color:#555;line-height:1.65">Paste any conversation from ${MODELS[model].label} above. Token count, redundancy, entropy and latency impact appear instantly — no backend needed.</p>
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Ready</div>
+      <p style="font-size:.82rem;color:#555;line-height:1.65">Paste any conversation from ${MODELS[model].label} and see instantly how full the memory is, what's repeated, and how it's affecting response speed.</p>
     </div>
     <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Context window</span><span class="gauge-val safe">0%</span></div>
+      <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val safe">0%</span></div>
       <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
-      <div class="gauge-sub">0 / ${limit.toLocaleString()} tokens available</div>
+      <div class="gauge-sub">0 / ${limit.toLocaleString()} tokens · ${TC.formatLimit(limit)} available</div>
     </div>
     <div class="gauge-card">
       <span class="gauge-lbl" style="display:block;margin-bottom:.75rem">Tokenizer</span>
       <div style="font-size:.82rem;color:#555;line-height:1.7">
-        <strong>${MODELS[model].label} ${Object.keys(MODELS[model].plans).map(k => MODELS[model].plans[k].split('·')[0].trim()).join(' / ')}</strong><br>
+        <strong>${MODELS[model].label}</strong><br>
         <span style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">${MODELS[model].tokenizerNote[plan]}</span>
       </div>
     </div>
     <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Redundancy</span><span class="gauge-val safe">—</span></div>
+      <div class="gauge-hdr"><span class="gauge-lbl">Repeated content</span><span class="gauge-val safe">—</span></div>
       <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
       <div class="gauge-sub">Paste text to detect repeated content</div>
     </div>
     <div class="gauge-card">
-      <span class="gauge-lbl">Shannon entropy</span>
+      <span class="gauge-lbl">Information density</span>
       <div style="font-family:var(--serif);font-size:1.6rem;display:block;margin:.2rem 0;color:var(--muted)">—</div>
-      <div class="gauge-sub">bits/char · information density</div>
+      <div class="gauge-sub">How much unique information is in your text</div>
     </div>
     <div class="gauge-card">
       <span class="gauge-lbl">Response speed</span>
       <div class="latency-bar-bg"><div class="latency-bar safe" style="width:0%;background:var(--accent)"></div></div>
-      <div class="gauge-sub">O(n²) · speed degrades as context fills</div>
+      <div class="gauge-sub">Gets slower as memory fills up</div>
     </div>
     <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1rem;font-size:.82rem;color:#1a4a35;line-height:1.65">
       <strong>${MODELS[model].label}</strong> — ${MODELS[model].behavior}
@@ -126,7 +125,6 @@ function setupListeners(){
   ta.addEventListener('input', () => {
     text = ta.value;
     toggleBtns();
-    // Update live from the very first character
     text.length > 0 ? updateLive() : showEmptyGauges();
     hideOutput();
   });
@@ -216,13 +214,13 @@ function updateLive(){
     ? `<div class="model-warn"><div class="warn-icon">!</div><p style="font-size:.78rem;color:#7a3a10;line-height:1.55">${MODELS[model].warning}</p></div>`
     : '';
 
-  // Color the redundancy card based on severity
-  const redColor = red > 50 ? 'var(--danger)' : red > 25 ? 'var(--warn)' : 'var(--accent)';
+  const redColor  = red > 50 ? 'var(--danger)' : red > 25 ? 'var(--warn)' : 'var(--accent)';
   const redStatus = red > 50 ? 'danger' : red > 25 ? 'warning' : 'safe';
+  const redMsg    = red > 30 ? 'a lot of repetition — compress recommended' : red > 10 ? 'some repeated content detected' : 'low repetition';
 
   document.getElementById('gauges-pane').innerHTML = `
     <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Context used</span><span class="gauge-val ${status}">${pct}%</span></div>
+      <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val ${status}">${pct}%</span></div>
       <div class="gauge-track"><div class="gauge-fill ${status}" style="width:${pct}%"></div></div>
       <div class="gauge-sub">${tokens.toLocaleString()} / ${limit.toLocaleString()} tokens · ${TC.formatLimit(limit - tokens)} remaining</div>
     </div>
@@ -235,19 +233,19 @@ function updateLive(){
       </table>
     </div>
     <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Redundancy</span><span class="gauge-val ${redStatus}" style="color:${redColor}">${red}%</span></div>
+      <div class="gauge-hdr"><span class="gauge-lbl">Repeated content</span><span class="gauge-val ${redStatus}" style="color:${redColor}">${red}%</span></div>
       <div class="gauge-track"><div class="gauge-fill ${redStatus}" style="width:${red}%;background:${redColor}"></div></div>
-      <div class="gauge-sub">~${Math.round(tokens*red/100).toLocaleString()} tokens removable · ${red > 30 ? 'compress recommended' : red > 10 ? 'some overlap detected' : 'low redundancy'}</div>
+      <div class="gauge-sub">~${Math.round(tokens*red/100).toLocaleString()} tokens wasted · ${redMsg}</div>
     </div>
     <div class="gauge-card">
-      <span class="gauge-lbl">Shannon entropy  H(X) = −Σ p(x)·log₂p(x)</span>
-      <div style="font-family:var(--serif);font-size:1.6rem;display:block;margin:.2rem 0;color:${H < 3 ? 'var(--warn)' : H < 4 ? 'var(--black)' : 'var(--accent)'}">${H}</div>
-      <div class="gauge-sub">bits/char · ${H < 3 ? 'low — repetitive, compresses well' : H < 4 ? 'moderate — typical conversation' : 'high — dense information'}</div>
+      <span class="gauge-lbl">Information density</span>
+      <div style="font-family:var(--serif);font-size:1.6rem;display:block;margin:.2rem 0;color:${H < 3 ? 'var(--warn)' : H < 4 ? 'var(--black)' : 'var(--accent)'}">${H} <span style="font-size:.9rem;font-family:var(--sans);color:var(--muted)">bits/char</span></div>
+      <div class="gauge-sub">${H < 3 ? 'low — lots of repetition, compresses well' : H < 4 ? 'moderate — typical conversation' : 'high — dense, information-rich text'}</div>
     </div>
     <div class="gauge-card">
-      <span class="gauge-lbl">Response speed impact  O(n²)</span>
+      <span class="gauge-lbl">Response speed</span>
       <div class="latency-bar-bg"><div class="latency-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
-      <div class="gauge-sub">~${mult}× slower than start · ${status === 'safe' ? 'optimal speed' : status === 'warning' ? 'slowing down — compress soon' : 'significantly slow — compress now'}</div>
+      <div class="gauge-sub">~${mult}× slower than the start · ${status === 'safe' ? 'still fast' : status === 'warning' ? 'noticeably slower — compress soon' : 'significantly slow — compress now'}</div>
     </div>
     ${warn}`;
 }
@@ -274,16 +272,16 @@ async function handleFile(file){
 
 async function runAnalysis(){
   if(!text.trim()) return;
-  showLoading('Analyzing with backend');
+  showLoading('Analyzing your conversation');
   try{
     const r = await API.analyze(text, model, plan);
     analysis = r;
     const s = TC.getStatus(r.tokens.percentage);
-    const redColor = r.redundancy.score > 50 ? 'var(--danger)' : r.redundancy.score > 25 ? 'var(--warn)' : 'var(--accent)';
+    const redColor  = r.redundancy.score > 50 ? 'var(--danger)' : r.redundancy.score > 25 ? 'var(--warn)' : 'var(--accent)';
     const redStatus = r.redundancy.score > 50 ? 'danger' : r.redundancy.score > 25 ? 'warning' : 'safe';
     document.getElementById('gauges-pane').innerHTML = `
       <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Context used</span><span class="gauge-val ${s}">${r.tokens.percentage}%</span></div>
+        <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val ${s}">${r.tokens.percentage}%</span></div>
         <div class="gauge-track"><div class="gauge-fill ${s}" style="width:${r.tokens.percentage}%"></div></div>
         <div class="gauge-sub">${r.tokens.total.toLocaleString()} / ${r.tokens.limit.toLocaleString()} tokens · ${(r.tokens.limit - r.tokens.total).toLocaleString()} remaining</div>
       </div>
@@ -297,17 +295,17 @@ async function runAnalysis(){
         </table>
       </div>
       <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Redundancy</span><span class="gauge-val ${redStatus}" style="color:${redColor}">${r.redundancy.score}%</span></div>
+        <div class="gauge-hdr"><span class="gauge-lbl">Repeated content</span><span class="gauge-val ${redStatus}" style="color:${redColor}">${r.redundancy.score}%</span></div>
         <div class="gauge-track"><div class="gauge-fill ${redStatus}" style="width:${r.redundancy.score}%;background:${redColor}"></div></div>
-        <div class="gauge-sub">~${r.redundancy.removable.toLocaleString()} tokens · via ${r.redundancy.method} · ${r.redundancy.score > 30 ? 'compress recommended' : 'low redundancy'}</div>
+        <div class="gauge-sub">~${r.redundancy.removable.toLocaleString()} tokens wasted · ${r.redundancy.score > 30 ? 'compress recommended' : 'low repetition'}</div>
       </div>
       <div class="gauge-card">
-        <span class="gauge-lbl">Shannon entropy  H(X) = −Σ p(x)·log₂p(x)</span>
-        <div style="font-family:var(--serif);font-size:1.6rem;display:block;margin:.2rem 0;color:${parseFloat(r.entropy)<3?'var(--warn)':parseFloat(r.entropy)<4?'var(--black)':'var(--accent)'}">${r.entropy}</div>
-        <div class="gauge-sub">bits/char</div>
+        <span class="gauge-lbl">Information density</span>
+        <div style="font-family:var(--serif);font-size:1.6rem;display:block;margin:.2rem 0;color:${parseFloat(r.entropy)<3?'var(--warn)':parseFloat(r.entropy)<4?'var(--black)':'var(--accent)'}">${r.entropy} <span style="font-size:.9rem;font-family:var(--sans);color:var(--muted)">bits/char</span></div>
+        <div class="gauge-sub">${parseFloat(r.entropy)<3?'low — lots of repetition':'moderate — typical conversation'}</div>
       </div>
       <div class="gauge-card">
-        <span class="gauge-lbl">Response speed impact  O(n²)</span>
+        <span class="gauge-lbl">Response speed</span>
         <div class="latency-bar-bg"><div class="latency-bar ${r.attention.zone}" style="width:${Math.min(r.attention.percentage*1.1,100)}%;background:${r.attention.zone==='safe'?'var(--accent)':r.attention.zone==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
         <div class="gauge-sub">${r.attention.message}</div>
       </div>
@@ -320,14 +318,14 @@ async function runAnalysis(){
 
 async function runCompress(){
   if(!text.trim()) return;
-  showLoading('Compressing with TurboQuant + Groq');
+  showLoading('Compressing — finding repeated content and rewriting');
   try{
     const r = await API.compress(text, model, plan);
     compressed = r.compressed;
     document.getElementById('output-section').style.display = 'block';
     document.getElementById('out-text').textContent    = compressed;
-    document.getElementById('saved-badge').textContent = `${r.tokens_saved.toLocaleString()} tokens saved · ${r.compression_ratio}% reduction`;
-    document.getElementById('out-note').textContent    = `Paste into a new ${MODELS[model].label} conversation. Same meaning, ${r.tokens_saved.toLocaleString()} fewer tokens.`;
+    document.getElementById('saved-badge').textContent = `${r.tokens_saved.toLocaleString()} tokens saved · ${r.compression_ratio}% shorter`;
+    document.getElementById('out-note').textContent    = `Paste this into a new ${MODELS[model].label} conversation. Same meaning, ${r.tokens_saved.toLocaleString()} fewer tokens — more room for what matters.`;
     document.getElementById('output-section').scrollIntoView({behavior:'smooth',block:'start'});
   } catch(e){ alert('Compression failed: '+e.message); }
   finally{ hideLoading(); }
@@ -350,67 +348,80 @@ function renderMath(r, lv){
     el.innerHTML = `
       <div class="math-card">
         <h4>What the numbers mean</h4>
-        <p>Your conversation is <strong>${total} tokens</strong> — ${r.tokens?.percentage||'?'}% of your limit.
-        About <strong>${redScore}%</strong> of it repeats information already stated —
-        roughly <strong>${removable} tokens</strong> removable without losing meaning.
-        Shannon entropy is <strong>${entropy} bits/char</strong> —
-        ${parseFloat(entropy)<3?'low — repetitive content, compresses well':parseFloat(entropy)<4?'moderate — typical conversational text':'high — dense information, harder to compress'}.</p>
+        <p>Your conversation is <strong>${total} tokens</strong> — ${r.tokens?.percentage||'?'}% of your ${MODELS[model].label} memory limit.
+        About <strong>${redScore}%</strong> of it says things that were already said earlier —
+        roughly <strong>${removable} tokens</strong> that could be removed without losing any meaning.
+        The information density score is <strong>${entropy} bits/char</strong> —
+        ${parseFloat(entropy)<3?'low, meaning your text is quite repetitive and will compress well':parseFloat(entropy)<4?'moderate, which is typical for conversational text':'high, meaning your text is information-dense and harder to compress'}.</p>
         <p style="font-size:.78rem;font-family:var(--mono);color:var(--muted);margin-top:.5rem">Tokenizer: ${tokNote}</p>
         <a href="learn/tokens.html" class="learn-lnk">What is a token? →</a>
       </div>
       <div class="math-card">
         <h4>Why responses are getting slower</h4>
-        <p>At <strong>${pct}%</strong> context fill, responses are approximately <strong>${mult}×</strong> slower than the start of this conversation. The AI re-reads your entire history on every message — and that work grows quadratically.</p>
-        <a href="learn/attention.html" class="learn-lnk">Why does context make AI slower? →</a>
+        <p>At <strong>${pct}%</strong> memory fill, responses are approximately <strong>${mult}×</strong> slower than the start of this conversation.
+        This happens because your AI re-reads your entire conversation history on every single message —
+        and that work grows much faster than the conversation itself. Compressing now will make it faster again.</p>
+        <a href="learn/attention.html" class="learn-lnk">Why does AI slow down? →</a>
       </div>`;
   } else {
     el.innerHTML = `
       <div class="math-card">
-        <h4>Tokenizer — model-specific, not interchangeable</h4>
+        <h4>Tokenizer — each model counts differently</h4>
         <div class="formula">Current: ${MODELS[model].label} · ${MODELS[model].plans[plan]}
 Tokenizer: ${tokNote}
 Estimate:  tokens ≈ chars / ${cpt}  →  ${total} tokens
 
+Each model uses a different tokenizer algorithm and vocabulary:
   Claude Haiku/Sonnet  Custom BPE      ~3.5 chars/token
   Claude Opus 4.7      New BPE (+35%)  ~2.6 chars/token
   ChatGPT              cl100k BPE      ~4.0 chars/token  vocab 100,277
-  Gemini               SentencePiece   ~4.5 chars/token  vocab 256,000</div>
+  Gemini               SentencePiece   ~4.5 chars/token  vocab 256,000
+
+The same text produces different token counts across models.</div>
         <a href="learn/tokens.html" class="learn-lnk">Tokenization explained →</a>
       </div>
       <div class="math-card">
-        <h4>Shannon entropy &amp; cosine redundancy</h4>
+        <h4>Shannon entropy &amp; redundancy detection</h4>
         <div class="formula">H(X) = −Σ p(x) · log₂ p(x)
+  p(x) = probability of character x in the text
   result: H = ${entropy} bits/char
+  0 = completely repetitive  →  4.7 = maximum density
 
-sim(A, B) = (A · B) / (‖A‖ · ‖B‖)
-  sim > threshold → semantically redundant
-  result: ${redScore}% redundant · ~${removable} tokens removable</div>
+Redundancy: Jaccard similarity on word sets + TF cosine similarity
+  Jaccard(A,B) = |A∩B| / |A∪B|  — catches exact/near-exact repeats
+  sim(A,B) = (A·B) / (‖A‖·‖B‖)  — catches semantic overlap
+  result: ${redScore}% of sentence pairs are redundant
+          ~${removable} tokens removable</div>
         <a href="learn/entropy.html" class="learn-lnk">Entropy →</a>&nbsp;
-        <a href="learn/embeddings.html" class="learn-lnk">Cosine similarity →</a>
+        <a href="learn/embeddings.html" class="learn-lnk">Similarity →</a>
       </div>
       <div class="math-card">
-        <h4>O(n²) attention — latency model</h4>
+        <h4>Self-attention complexity — why AI slows down</h4>
         <div class="formula">Attention(Q,K,V) = softmax(QKᵀ / √d) · V
-  complexity: O(n²·d) per layer
+  Q, K ∈ ℝⁿˣᵈ  ·  n = tokens  ·  d = dimensions
+  complexity: O(n²·d) per layer — every token attends to every other
 
 Latency multiplier = (context% / 50)²
   at ${pct}%:  (${pct}/50)² = ${mult}×
 
-Compression speedup at ${redScore}% reduction:
-  1 / (1 − ${(redScore/100).toFixed(2)})² = ${speedup}×</div>
-        <a href="learn/attention.html" class="learn-lnk">Attention complexity →</a>
+If you compress ${redScore}% of tokens:
+  speedup ≈ 1 / (1 − ${(redScore/100).toFixed(2)})² = ${speedup}×</div>
+        <a href="learn/attention.html" class="learn-lnk">Attention explained →</a>
       </div>
       <div class="math-card">
-        <h4>TurboQuant — Zandieh et al., ICLR 2026 · arXiv:2504.19874</h4>
-        <div class="formula">Stage 1 — PolarQuant:
-  y = Πx,  q = round(y · √d) → int8
+        <h4>How compression works</h4>
+        <div class="formula">Step 1 — Semantic similarity (sentence-transformers, 384-dim):
+  embed each sentence → 384-dimensional vector
+  find pairs with cosine similarity above threshold
+  flag semantically redundant content
 
-Stage 2 — QJL:
-  s = sign(y − q/√d) ∈ {+1,−1}
+Step 2 — LLM rewriting (Groq Llama 3.3 70B):
+  send flagged redundancies + original text to Llama
+  rewrite: same meaning, remove repeated content
+  return shorter version ready to paste
 
-D_prod ≤ (‖y‖²/d) · C/4^b,  C≈2.7
-  result: 9× memory reduction, near-zero loss</div>
-        <a href="learn/quantization.html" class="learn-lnk">Full derivation →</a>
+Result: same conversation, fewer tokens, more room.</div>
+        <a href="learn/embeddings.html" class="learn-lnk">How embeddings work →</a>
       </div>`;
   }
 }
