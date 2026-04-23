@@ -276,7 +276,7 @@ async function runAnalysis(){
   try{
     const r = await API.analyze(text, model, plan);
     analysis = r;
-    const s = TC.getStatus(r.tokens.percentage);
+    const s         = TC.getStatus(r.tokens.percentage);
     const redColor  = r.redundancy.score > 50 ? 'var(--danger)' : r.redundancy.score > 25 ? 'var(--warn)' : 'var(--accent)';
     const redStatus = r.redundancy.score > 50 ? 'danger' : r.redundancy.score > 25 ? 'warning' : 'safe';
     document.getElementById('gauges-pane').innerHTML = `
@@ -334,12 +334,14 @@ async function runCompress(){
 function renderMath(r, lv){
   const el = document.getElementById('math-area');
   if(!el) return;
-  const entropy   = r.entropy || '—';
-  const redScore  = r.redundancy?.score || 0;
-  const pct       = r.attention?.percentage || 0;
-  const mult      = r.attention?.multiplier || 1;
-  const total     = r.tokens?.total?.toLocaleString() || '?';
-  const removable = r.redundancy?.removable?.toLocaleString() || '?';
+  const entropy   = r.entropy ?? '—';
+  const redScore  = r.redundancy?.score ?? 0;
+  const pct       = r.attention?.percentage ?? 0;
+  const mult      = r.attention?.multiplier ?? 1;
+  const total     = r.tokens?.total?.toLocaleString() ?? '?';
+  const removable = r.redundancy?.removable?.toLocaleString() ?? '?';
+  // Use ?? instead of || so 0% shows correctly instead of falling back to '?'
+  const pctDisplay = r.tokens?.percentage ?? '?';
   const speedup   = redScore > 0 ? Math.round(1/Math.pow(Math.max(1-redScore/100,0.01),2)*10)/10 : 1;
   const cpt       = TC.charsPerToken[model]?.[plan] || 3.8;
   const tokNote   = MODELS[model].tokenizerNote?.[plan] || '';
@@ -348,7 +350,7 @@ function renderMath(r, lv){
     el.innerHTML = `
       <div class="math-card">
         <h4>What the numbers mean</h4>
-        <p>Your conversation is <strong>${total} tokens</strong> — ${r.tokens?.percentage||'?'}% of your ${MODELS[model].label} memory limit.
+        <p>Your conversation is <strong>${total} tokens</strong> — <strong>${pctDisplay}%</strong> of your ${MODELS[model].label} memory limit.
         About <strong>${redScore}%</strong> of it says things that were already said earlier —
         roughly <strong>${removable} tokens</strong> that could be removed without losing any meaning.
         The information density score is <strong>${entropy} bits/char</strong> —
@@ -387,11 +389,11 @@ The same text produces different token counts across models.</div>
   result: H = ${entropy} bits/char
   0 = completely repetitive  →  4.7 = maximum density
 
-Redundancy: Jaccard similarity on word sets + TF cosine similarity
+Redundancy: Jaccard similarity + TF cosine similarity
   Jaccard(A,B) = |A∩B| / |A∪B|  — catches exact/near-exact repeats
-  sim(A,B) = (A·B) / (‖A‖·‖B‖)  — catches semantic overlap
-  result: ${redScore}% of sentence pairs are redundant
-          ~${removable} tokens removable</div>
+  sim(A,B) = (A·B) / (‖A‖·‖B‖)  — catches semantic paraphrasing
+  score = redundant sentences / total sentences
+  result: ${redScore}% redundant · ~${removable} tokens removable</div>
         <a href="learn/entropy.html" class="learn-lnk">Entropy →</a>&nbsp;
         <a href="learn/embeddings.html" class="learn-lnk">Similarity →</a>
       </div>

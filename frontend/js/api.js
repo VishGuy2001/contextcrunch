@@ -57,12 +57,18 @@ const API = {
 };
 
 const TC = {
+  // Context window limits — verified April 22 2026
   limits: {
     claude:  { haiku: 200000, sonnet: 1000000, opus: 1000000 },
     chatgpt: { free: 32000, plus: 272000, pro: 1050000 },
     gemini:  { free: 1048576, pro: 1048576, ultra: 1048576 },
   },
 
+  // Chars per token by model — each uses a different tokenizer
+  // Claude Haiku/Sonnet: Custom BPE ~3.5 chars/token
+  // Claude Opus 4.7:     New BPE — up to 35% more tokens — ~2.6 chars/token
+  // ChatGPT:             cl100k BPE ~4.0 chars/token vocab 100,277
+  // Gemini:              SentencePiece unigram ~4.5 chars/token vocab 256,000
   charsPerToken: {
     claude:  { haiku: 3.5, sonnet: 3.5, opus: 2.6 },
     chatgpt: { free: 4.0, plus: 4.0, pro: 4.0 },
@@ -93,6 +99,9 @@ const TC = {
     return n.toString();
   },
 
+  // H(X) = -Σ p(x) · log₂ p(x)
+  // Measures average information per character.
+  // Low = repetitive/compressible. High = information-dense.
   entropy(text){
     if(!text || text.length < 2) return 0;
     const freq = {};
@@ -107,42 +116,52 @@ const TC = {
   },
 
   // Two-pass redundancy detection:
-  // Pass 1 — Jaccard similarity on raw word sets (catches exact/near-exact repeats)
-  // Pass 2 — TF cosine similarity (catches semantic overlap on longer sentences)
+  // Pass 1 — Jaccard: |A∩B| / |A∪B| on word sets (catches short repeated phrases)
+  // Pass 2 — TF cosine: sim(A,B) = (A·B)/(‖A‖·‖B‖) (catches semantic paraphrasing)
+  // Score = redundant sentences / total sentences (not pairs)
   redundancy(text, model='claude', plan='sonnet'){
     if(!text || text.length < 2) return 0;
 
-    // Split on sentence endings and newlines only — not commas/semicolons
-    // which fragment conversational text into useless tiny pieces
-    const raw = text
+    // Split on sentence endings and newlines — not commas
+    const sentences = text
       .split(/(?<=[.!?])\s+|\n+/)
       .map(s => s.trim().toLowerCase())
       .filter(s => s.length > 0);
 
-    if(raw.length < 2) return 0;
+    if(sentences.length < 2) return 0;
 
-    // Normalise — remove punctuation, collapse whitespace
-    const norm = raw.map(s => s.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim());
+    const norm = sentences.map(s => s.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim());
 
-    // Jaccard: |A∩B| / |A∪B| on word sets
-    // Catches exact duplicates and near-duplicates regardless of word count
+    // Stopwords — removed before comparison so "how are you" still matches "how are you?"
+    const stop = new Set(['the','a','an','is','are','was','were','be','been','being','have',
+      'has','had','do','does','did','will','would','could','should','may','might','i','you',
+      'he','she','it','we','they','this','that','and','or','but','in','on','at','to','for',
+      'of','with','by','from','as','not','just','so','what','how','when','where','who',
+      'which','if','then','than','too','very','also','can','get','got','like','go','going',
+      'want','need','think','know','me','my','your','our','their','its','im','ok','okay',
+      'yes','no','hi','hey','hello']);
+
+    // Jaccard similarity: |A∩B| / |A∪B| on word sets after stopword removal
+    // No minimum word length — catches short phrases like "how are you"
     function jaccard(a, b){
-      const wa = new Set(a.split(' ').filter(w => w));
-      const wb = new Set(b.split(' ').filter(w => w));
-      if(wa.size === 0 && wb.size === 0) return 1;
+      const wa = new Set(a.split(' ').filter(w => w && !stop.has(w)));
+      const wb = new Set(b.split(' ').filter(w => w && !stop.has(w)));
+      // If both empty after stopword removal, compare raw words
+      if(wa.size === 0 && wb.size === 0){
+        const ra = new Set(a.split(' ').filter(w => w));
+        const rb = new Set(b.split(' ').filter(w => w));
+        if(!ra.size || !rb.size) return 0;
+        let inter = 0;
+        for(const w of ra) if(rb.has(w)) inter++;
+        return inter / (ra.size + rb.size - inter);
+      }
       if(wa.size === 0 || wb.size === 0) return 0;
       let inter = 0;
       for(const w of wa) if(wb.has(w)) inter++;
       return inter / (wa.size + wb.size - inter);
     }
 
-    // TF cosine: sim(A,B) = (A·B) / (‖A‖·‖B‖)
-    // For longer sentences with enough content words after stopword removal
-    const stop = new Set(['the','a','an','is','are','was','were','be','been','have','has','had',
-      'do','does','did','will','would','could','should','may','might','i','you','he','she',
-      'it','we','they','this','that','and','or','but','in','on','at','to','for','of','with',
-      'by','from','as','not','can','just','so','me','my','your','our','their']);
-
+    // TF cosine for longer sentences with enough content words
     function tfCosine(a, b){
       const wa = a.split(' ').filter(w => w.length > 1 && !stop.has(w));
       const wb = b.split(' ').filter(w => w.length > 1 && !stop.has(w));
@@ -160,21 +179,21 @@ const TC = {
       return d > 0 ? dot/d : 0;
     }
 
-    // Thresholds — lowered to catch semantic overlap, not just exact copies
-    // Jaccard 0.4 = 40% word overlap — catches paraphrases and near-duplicates
-    // Cosine 0.65 = strong semantic overlap on content words
-    let redundantPairs = 0;
-    const totalPairs = (raw.length * (raw.length - 1)) / 2;
-
+    // Find redundant sentences
+    const redundantSet = new Set();
     for(let i = 0; i < norm.length; i++){
       for(let j = i+1; j < norm.length; j++){
-        const j_sim = jaccard(norm[i], norm[j]);
-        const c_sim = j_sim < 0.4 ? tfCosine(norm[i], norm[j]) : 0;
-        if(j_sim >= 0.4 || c_sim >= 0.65) redundantPairs++;
+        if(!redundantSet.has(j)){
+          const j_sim = jaccard(norm[i], norm[j]);
+          const c_sim = j_sim < 0.4 ? tfCosine(norm[i], norm[j]) : 0;
+          if(j_sim >= 0.4 || c_sim >= 0.65) redundantSet.add(j);
+        }
       }
     }
 
-    return Math.min(Math.round((redundantPairs / Math.max(totalPairs, 1)) * 100), 90);
+    // Score = redundant sentences / total sentences
+    // This gives a more intuitive % than pairs-based scoring
+    return Math.min(Math.round((redundantSet.size / Math.max(sentences.length, 1)) * 100), 90);
   },
 
   // T(n) ∝ n²  →  multiplier = (pct/50)²
@@ -195,6 +214,7 @@ const TC = {
     return { user:ut, ai:at, system:Math.round((ut+at)*0.05) };
   },
 
+  // Official image token formulas per model
   imageTokens(w, h, model){
     if(model==='claude')  return Math.min(Math.round((w*h)/750), 1600);
     if(model==='chatgpt') return 85+(Math.ceil(w/512)*Math.ceil(h/512))*170;
