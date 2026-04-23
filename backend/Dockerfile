@@ -5,6 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the contextcrunch library from parent directory
+COPY ../contextcrunch ./contextcrunch
+
+# Copy backend files
 COPY . .
 
 EXPOSE 8080
