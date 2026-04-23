@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Entropy & Information Theory</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2.5rem}
+.demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.demo-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem}
+.demo-textarea:focus{border-color:var(--accent)}
+.entropy-big{font-family:var(--serif);font-size:3rem;line-height:1}
+.scale-track{background:linear-gradient(to right,#e8f4ef,#fdf0e8,#fdf0f0);height:12px;border-radius:6px;position:relative;margin:.5rem 0}
+.scale-marker{position:absolute;top:-4px;width:4px;height:20px;background:var(--black);border-radius:2px;transform:translateX(-50%);transition:left .3s}
+.ex-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem;cursor:pointer;transition:border-color .2s}
+.ex-card:hover{border-color:var(--accent)}
+.char-bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.char-label{font-family:var(--mono);font-size:.72rem;color:var(--black);min-width:24px;text-align:center}
+.char-bar-bg{flex:1;background:var(--mid);border-radius:3px;height:8px;overflow:hidden}
+.char-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.char-pct{font-family:var(--mono);font-size:.68rem;color:var(--muted);min-width:40px;text-align:right}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 03</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Entropy &amp; information theory</h1>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">How do we measure information vs noise? Shannon entropy is the mathematical core of ContextCrunch's waste detection. Paste any text and see real entropy calculated by the backend.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
+  </div>
+
+  <!-- LIVE ENTROPY DEMO -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Live entropy calculator — real backend</span>
+      <span id="ent-status" style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Paste text to measure</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-textarea" id="ent-input" placeholder="Paste any text to measure its information density..."></textarea>
+      <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="runEntropy()" style="font-size:.85rem;padding:.45rem 1.1rem">Calculate →</button>
+        <button class="btn btn-secondary" onclick="loadEx('low')" style="font-size:.82rem;padding:.45rem .9rem">Low entropy</button>
+        <button class="btn btn-secondary" onclick="loadEx('med')" style="font-size:.82rem;padding:.45rem .9rem">Medium</button>
+        <button class="btn btn-secondary" onclick="loadEx('high')" style="font-size:.82rem;padding:.45rem .9rem">High entropy</button>
+        <button class="btn btn-secondary" onclick="loadEx('red')" style="font-size:.82rem;padding:.45rem .9rem">Redundant</button>
+      </div>
+
+      <!-- Live instant display -->
+      <div style="display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem">
+        <div>
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Shannon entropy</div>
+          <div class="entropy-big" id="ent-val">—</div>
+          <div style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">bits/character</div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Density scale</div>
+          <div class="scale-track"><div class="scale-marker" id="scale-marker" style="left:50%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:.68rem;font-family:var(--mono);color:var(--muted)"><span>0 repetitive</span><span>3.5 typical</span><span>4.7 max</span></div>
+          <div style="font-size:.85rem;color:#555;margin-top:.5rem;font-style:italic" id="ent-interp">—</div>
+        </div>
+      </div>
+
+      <!-- Backend results: character frequency visualization -->
+      <div id="char-freq-section" style="display:none">
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Top characters by frequency</div>
+        <div id="char-freq-bars"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem" id="ent-stats-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASK AI ABOUT ENTROPY -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Ask about entropy — live AI explanation</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Powered by Groq</span>
+    </div>
+    <div class="demo-body">
+      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:1rem" id="ai-ent-input" placeholder="e.g. 'Why does low entropy mean text is compressible?'">
+      <button class="btn btn-primary" onclick="askAIEntropy()" style="font-size:.88rem;margin-bottom:1rem">Ask →</button>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.25rem;min-height:60px" id="ai-ent-result"></div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+
+  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
+    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See your conversation's entropy score live.</p>
+    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const EX = {
+  low:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  med:'The transformer model processes your conversation by reading every token from the beginning of the context window before generating each response.',
+  high:'def turboquant(x:np.ndarray)->tuple:G=np.random.randn(x.shape[-1],x.shape[-1]);R,_=np.linalg.qr(G);y=x@R;q=np.clip(np.round(y*np.sqrt(x.shape[-1])),-127,127).astype(np.int8);return q,np.sign(y-q.astype(np.float32)/np.sqrt(x.shape[-1])).astype(np.int8)',
+  red:'As I mentioned earlier, as I said before, to reiterate what I said, as previously noted, let me repeat what I already told you, as I mentioned above, to say again what was already stated.'
+};
+
+function loadEx(k){ document.getElementById('ent-input').value=EX[k]; updateLive(); }
+
+function updateLive(){
+  const text = document.getElementById('ent-input').value;
+  if(!text){ document.getElementById('ent-val').textContent='—'; document.getElementById('ent-interp').textContent='—'; document.getElementById('scale-marker').style.left='50%'; return; }
+  const H = TC.entropy(text);
+  document.getElementById('ent-val').textContent = H.toFixed(3);
+  document.getElementById('scale-marker').style.left = Math.min(H/4.7*100,100)+'%';
+  const interp = H<2?'Very low — highly compressible':H<3?'Low — redundant content':H<3.8?'Moderate — typical conversation':H<4.3?'High — dense information':'Very high — code or structured data';
+  document.getElementById('ent-interp').textContent = interp;
+  document.getElementById('ent-status').textContent = text.length.toLocaleString()+' chars · H = '+H.toFixed(3)+' bits/char';
+}
+
+async function runEntropy(){
+  const text = document.getElementById('ent-input').value.trim();
+  if(!text) return;
+  updateLive();
+  demoLoading('char-freq-bars','');
+  document.getElementById('char-freq-section').style.display='block';
+  try {
+    const r = await API.demoEntropy(text);
+    document.getElementById('ent-val').textContent = r.entropy.toFixed(3);
+    document.getElementById('scale-marker').style.left = Math.min(r.entropy/4.7*100,100)+'%';
+    document.getElementById('ent-interp').textContent = r.interpretation;
+    document.getElementById('ent-status').textContent = r.char_count.toLocaleString()+' chars · '+r.unique_chars+' unique · H = '+r.entropy.toFixed(3);
+
+    // Character frequency bars
+    const maxCount = Math.max(...r.top_chars.map(c=>c.count));
+    document.getElementById('char-freq-bars').innerHTML = r.top_chars.map(c=>`
+      <div class="char-bar-row">
+        <span class="char-label">${c.char==' '?'·':c.char}</span>
+        <div class="char-bar-bg"><div class="char-bar-fill" style="width:${Math.round(c.count/maxCount*100)}%"></div></div>
+        <span class="char-pct">${(c.prob*100).toFixed(1)}%</span>
+      </div>`).join('');
+
+    document.getElementById('ent-stats-grid').innerHTML = `
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.entropy.toFixed(3)}</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">bits/char</span></div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.compression_bound.bound}%</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">max lossless compression</span></div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.unique_chars}</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">unique characters</span></div>`;
+  } catch(e){
+    document.getElementById('char-freq-bars').innerHTML = `<p style="font-size:.82rem;color:var(--muted);font-family:var(--mono)">Backend unavailable — showing client estimate</p>`;
+  }
+}
+
+async function askAIEntropy(){
+  const q = document.getElementById('ai-ent-input').value.trim();
+  if(!q) return;
+  demoLoading('ai-ent-result','Asking Llama 3.1 8B');
+  try {
+    const r = await API.demo('entropy', q, 'entropy');
+    document.getElementById('ai-ent-result').innerHTML = formatDemoResult(r.result);
+  } catch(e){ demoError('ai-ent-result','Backend unavailable: '+e.message); }
+}
+
+let deb;
+document.getElementById('ent-input').addEventListener('input',()=>{ clearTimeout(deb); deb=setTimeout(updateLive,200); });
+
+const levels = {
+  simple:`<div class="cs"><h2>What is entropy?</h2><p>Entropy measures surprise. "aaaaaaa" has zero entropy — no surprises, no information. Random gibberish has maximum entropy — all surprise. Real conversations sit in between.</p><p>When someone says "as I mentioned earlier" for the third time, they're adding low-entropy content — predictable, compressible waste. ContextCrunch finds this and removes it.</p></div>`,
+  technical:`<div class="cs"><h2>H(X) = −Σ p(x) log₂ p(x)</h2><p>For a discrete random variable X over alphabet A, entropy H(X) measures average bits needed to encode one symbol.</p><div class="formula">H(X) = -Σ p(x) · log₂(p(x))
+
+Bounds: 0 ≤ H(X) ≤ log₂|A|
+English: H ≈ 4.0 bits/char
+After compression: H ≈ 1.0 bits/char</div><div class="code-block">import math
+from collections import Counter
+
+def shannon_entropy(text: str) -> float:
+    freq = Counter(text)
+    total = len(text)
+    return -sum(
+        (c/total) * math.log2(c/total)
+        for c in freq.values()
+    )
+
+print(shannon_entropy("aaaaaa"))       # 0.0
+print(shannon_entropy("hello world"))  # ~3.18</div></div>`,
+  academic:`<div class="cs"><h2>Source coding theorem</h2><p>Shannon's theorem: H(X) is the minimum average code length for lossless compression. Gives absolute lower bound.</p><div class="formula">L* = H(X) bits/symbol (minimum achievable)
+Compression ratio: 1 - H(X)/log₂|A|
+
+Kolmogorov complexity:
+  H(X) ≤ K(x)/n ≤ H(X) + O(log n / n)
+
+Mutual information for redundancy:
+  I(X;Y) = H(X) + H(Y) - H(X,Y)
+  I(X;Y) > τ → semantic redundancy detected</div><div class="code-block">import math
+from collections import Counter
+
+def mutual_information(a: str, b: str) -> float:
+    """I(A;B) = H(A) + H(B) - H(A,B)"""
+    def H(tokens):
+        c=Counter(tokens); n=sum(c.values())
+        return -sum((v/n)*math.log2(v/n) for v in c.values())
+    wa,wb=a.split(),b.split()
+    m=min(len(wa),len(wb))
+    return H(wa)+H(wb)-H(list(zip(wa[:m],wb[:m])))
+
+# Ref: Cover & Thomas (2006). Elements of Information Theory.</div></div>`
+};
+
+setLevel('simple', document.querySelector('.level-btn'), levels);
+</script>
+</body>
+</html>

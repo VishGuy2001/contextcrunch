@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Prompt Efficiency</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2.5rem}
+.demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.prompt-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem}
+.prompt-textarea:focus{border-color:var(--accent)}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center}
+.stat-num{display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem}
+.stat-lbl{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.output-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;overflow:hidden;display:none}
+.output-hdr{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);font-size:.82rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem}
+.output-text{padding:1.25rem;font-size:.9rem;line-height:1.75;color:#333;white-space:pre-wrap}
+.output-footer{padding:.75rem 1.25rem;background:var(--cream);border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.waste-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.25rem 0}
+.waste-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.waste-tag{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:.35rem}
+.waste-saving{font-family:var(--mono);font-size:.72rem;color:var(--accent);margin-top:.5rem;display:block}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 06</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Prompt efficiency</h1>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">Paste any prompt. ContextCrunch rewrites it to say the same thing in fewer tokens — using Groq Llama 3.3 70B and the math of mutual information.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
+  </div>
+
+  <!-- LIVE PROMPT IMPROVER -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Live prompt efficiency analyzer &amp; compressor</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Groq Llama 3.3 70B</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="prompt-textarea" id="prompt-input" placeholder="Paste any prompt you've been sending to Claude, ChatGPT, or Gemini..."></textarea>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-num" id="p-tokens">0</span><span class="stat-lbl">tokens</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-entropy">—</span><span class="stat-lbl">entropy</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-redundancy">0%</span><span class="stat-lbl">redundancy</span></div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn btn-accent" id="compress-btn" onclick="compressPrompt()" disabled style="font-size:.88rem;padding:.6rem 1.25rem">Compress this prompt →</button>
+        <button class="btn btn-secondary" onclick="loadSample()" style="font-size:.82rem;padding:.6rem 1.1rem">Load sample</button>
+        <button class="btn btn-secondary" onclick="loadSample2()" style="font-size:.82rem;padding:.6rem 1.1rem">Another sample</button>
+      </div>
+      <div id="prompt-loading" style="display:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:1rem"><span class="spin">◌</span> Rewriting with Groq Llama 3.3 70B<span class="loading-dots"></span></div>
+      <div class="output-box" id="prompt-output">
+        <div class="output-hdr">
+          <span>Compressed prompt — ready to paste</span>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <span style="background:var(--accent-light);color:var(--accent);font-size:.72rem;padding:.2rem .6rem;border-radius:100px;font-family:var(--mono)" id="saved-badge"></span>
+            <button onclick="copyOutput()" style="background:var(--black);color:var(--white);border:none;padding:.35rem .85rem;border-radius:5px;font-size:.78rem;cursor:pointer;font-family:var(--mono)">Copy →</button>
+          </div>
+        </div>
+        <div class="output-text" id="output-text"></div>
+        <div class="output-footer" id="output-changes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMON WASTE PATTERNS -->
+  <div class="cs">
+    <h2>Common token waste patterns</h2>
+    <div class="waste-grid">
+      <div class="waste-card"><span class="waste-tag">Polite filler</span><div style="font-size:.85rem;color:#333;line-height:1.5">"I was hoping you could please help me understand and explain in detail..."</div><span class="waste-saving">→ "Explain..." saves ~12 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Redundant context</span><div style="font-size:.85rem;color:#333;line-height:1.5">"As we discussed, as I mentioned, as you know, as I said before..."</div><span class="waste-saving">→ Remove entirely, saves ~15 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Over-specification</span><div style="font-size:.85rem;color:#333;line-height:1.5">"...that is helpful and informative and useful and relevant and accurate..."</div><span class="waste-saving">→ Implied, saves ~18 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Restating the obvious</span><div style="font-size:.85rem;color:#333;line-height:1.5">"I am a human user asking you, an AI assistant, to help me with..."</div><span class="waste-saving">→ The model knows, saves ~20 tokens</span></div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+
+  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
+    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">Compress your full conversation, not just a single prompt.</p>
+    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the full tool →</a>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const S1="I was hoping that you could please help me understand and explain in detail the concept of machine learning and could you also please provide some examples of how it is used in various real world applications today and maybe also could you touch on the history of how it developed over time as well as the future directions it might take going forward if possible thank you so much";
+const S2="I would like to kindly request that you take a look at my code and help me understand what might be going wrong with it and also if you could suggest any improvements or optimizations that might make it run faster or use less memory that would be really helpful and appreciated";
+
+function loadSample(){ document.getElementById('prompt-input').value=S1; analyzePrompt(); }
+function loadSample2(){ document.getElementById('prompt-input').value=S2; analyzePrompt(); }
+
+function analyzePrompt(){
+  const text=document.getElementById('prompt-input').value;
+  const tokens=TC.estimate(text);
+  const entropy=TC.entropy(text);
+  const red=TC.redundancy(text);
+  document.getElementById('p-tokens').textContent=tokens.toLocaleString();
+  document.getElementById('p-entropy').textContent=entropy;
+  document.getElementById('p-redundancy').textContent=red+'%';
+  document.getElementById('compress-btn').disabled=tokens<5;
+  document.getElementById('prompt-output').style.display='none';
+}
+
+let deb;
+document.getElementById('prompt-input').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(analyzePrompt,200);});
+
+async function compressPrompt(){
+  const text=document.getElementById('prompt-input').value.trim();
+  if(!text) return;
+  document.getElementById('prompt-loading').style.display='block';
+  document.getElementById('compress-btn').disabled=true;
+  document.getElementById('prompt-output').style.display='none';
+  try{
+    const r=await API.improvePrompt(text,'claude','plus');
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent=r.compressed;
+    document.getElementById('saved-badge').textContent=`${r.original_tokens}→${r.compressed_tokens} tokens · saved ${r.tokens_saved}`;
+    document.getElementById('output-changes').textContent=r.changes.length?'Changes: '+r.changes.join(' · '):'Prompt compressed.';
+    document.getElementById('p-tokens').textContent=r.compressed_tokens.toLocaleString();
+  }catch(e){
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent='Backend unavailable: '+e.message+'\nMake sure api.contextcrunch.io is running.';
+  }finally{
+    document.getElementById('prompt-loading').style.display='none';
+    document.getElementById('compress-btn').disabled=false;
+  }
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output-text').textContent);
+  event.target.textContent='✓ Copied';
+  setTimeout(()=>event.target.textContent='Copy →',2000);
+}
+
+const levels={
+  simple:`<div class="cs"><h2>The most common waste: saying more than you need to</h2><p>Most people use 2-3× more tokens than necessary when prompting AI. Politeness filler, redundant context-setting, over-specifying obvious things — all of these cost tokens without adding information.</p><p>The best prompts are precise and direct. "Explain machine learning: concept, real-world uses, brief history" says everything "Could you please help me understand and explain in detail the concept of machine learning..." says — in 60% fewer tokens.</p></div>`,
+  technical:`<div class="cs"><h2>Mutual information and redundancy</h2><p>ContextCrunch scores prompts by measuring mutual information between sentence pairs. High MI means two parts say the same thing — one can go.</p><div class="formula">I(A;B) = H(A) + H(B) - H(A,B)
+I(A;B) > threshold → A and B are redundant
+
+Common flagged patterns:
+  Polite filler: "please", "could you" → 0 information
+  Restatements: "as I mentioned" → negative info
+  Over-spec: "helpful and useful and relevant" → 1 concept</div><div class="code-block">def prompt_efficiency(prompt: str) -> float:
+    tokens = count_tokens(prompt)
+    entropy = shannon_entropy(prompt)
+    redundancy = redundancy_score(prompt)
+    # Efficiency = 1 - fraction of tokens that are redundant
+    return round(1 - (redundancy["score"]/100), 2)</div></div>`,
+  academic:`<div class="cs"><h2>MDL principle for prompt optimization</h2><p>An optimal prompt minimizes description length while preserving I(response; intent). Formally: min |T(P)| subject to I(R; intent) ≥ Q_target.</p><div class="formula">Minimum Description Length (MDL):
+  P* = argmin_{P: quality≥Q} K(P)
+  K(P) ≈ |T(P)| · H(T(P))
+
+Sentence s is redundant if:
+  I(s; intent | P\s) ≈ 0
+  i.e. H(intent|P) ≈ H(intent|P∪{s})</div><div class="code-block">from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def info_gain(sentence: str, context: str, τ=0.82) -> float:
+    """Estimate information gain of adding sentence to context."""
+    if not context.strip(): return 1.0
+    embs = model.encode([sentence, context], normalize_embeddings=True)
+    sim = float(np.dot(embs[0], embs[1]))
+    return max(0.0, 1.0 - (sim - τ) / (1.0 - τ))
+# Ref: Rissanen (1978). MDL. Automatica.</div></div>`
+};
+
+setLevel('simple',document.querySelector('.level-btn'),levels);
+</script>
+</body>
+</html>

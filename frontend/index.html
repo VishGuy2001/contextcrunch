@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Crunch your AI context</title>
+<meta name="description" content="Token analysis and compression for Claude, ChatGPT, and Gemini. Stop losing work. Stop wasting tokens. Free and open source.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+<style>
+.hero{padding:6rem 2rem 4rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent);font-size:.78rem;padding:.35rem .9rem;border-radius:100px;margin-bottom:2rem;font-family:var(--mono)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
+.hero h1{font-family:var(--serif);font-size:clamp(2.6rem,6vw,4.2rem);margin-bottom:1.5rem}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero-sub{font-size:1.1rem;color:#555;max-width:580px;margin:0 auto 2.5rem;line-height:1.75}
+.hero-actions{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.hero-note{font-size:.78rem;color:var(--muted);font-family:var(--mono);margin-bottom:4rem}
+.hero-stats{display:flex;align-items:center;justify-content:center;background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-wrap:wrap;max-width:720px;margin:0 auto}
+.hstat{flex:1;min-width:160px;padding:1.5rem;text-align:center}
+.hstat-num{display:block;font-family:var(--serif);font-size:1.8rem;margin-bottom:.25rem}
+.hstat-lbl{font-size:.78rem;color:var(--muted);line-height:1.4}
+.hstat-div{width:1px;height:60px;background:var(--border);flex-shrink:0}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-top:3rem}
+.step{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+.step-num{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.5rem;display:block}
+.step h3{font-size:1.1rem;margin-bottom:.5rem}
+.step p{font-size:.88rem;color:#555;line-height:1.65}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
+.why-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+.why-card h3{font-size:1.05rem;margin-bottom:.5rem}
+.why-card p{font-size:.88rem;color:#555;line-height:1.65}
+@media(max-width:600px){.why-grid{grid-template-columns:1fr}.hstat-div{display:none}}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+  <section class="hero">
+    <div class="hero-badge"><span class="badge-dot"></span>v0.1 · text conversations · files &amp; images coming soon</div>
+    <h1>Your AI is <em>forgetting you.</em><br>Here's the math behind why.</h1>
+    <p class="hero-sub">Every token you add makes your AI slower, more expensive, and more forgetful. ContextCrunch measures your token waste, shows you the math, and compresses your context so you get more from every conversation.</p>
+    <div class="hero-actions">
+      <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
+      <a href="learn/index.html" class="btn btn-secondary">Learn the math</a>
+    </div>
+    <p class="hero-note">Free · No login · No data stored · Open source · Deployed on Google Cloud Run</p>
+    <div class="hero-stats">
+      <div class="hstat"><span class="hstat-num">95%</span><span class="hstat-lbl">of AI pilots show no measurable ROI</span></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><span class="hstat-num">O(n²)</span><span class="hstat-lbl">attention cost — double tokens = 4× slower</span></div>
+      <div class="hstat-div"></div>
+      <div class="hstat"><span class="hstat-num">$85k</span><span class="hstat-lbl">average monthly enterprise AI spend</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="container">
+      <span class="section-label">How it works</span>
+      <h2 class="section-title">Three steps. Zero server cost for steps 1 and 2.</h2>
+      <p class="section-sub">Most of ContextCrunch runs instantly in your browser using pure math. The backend only activates when you request compression.</p>
+      <div class="steps">
+        <div class="step"><span class="step-num">01 — instant, free</span><h3>Paste or upload</h3><p>Paste any conversation from Claude, ChatGPT, or Gemini. Or upload a PDF, PPTX, DOCX, XLSX, image, or code file. Token count appears immediately. No server call.</p></div>
+        <div class="step"><span class="step-num">02 — instant, free</span><h3>See your waste</h3><p>Live breakdown by speaker, redundancy score, Shannon entropy, context window fill, and O(n²) latency impact. All real time in the browser.</p></div>
+        <div class="step"><span class="step-num">03 — on request</span><h3>Get compressed output</h3><p>Click compress. The Python backend runs TurboQuant on your embeddings, finds redundant chunks, and rewrites your conversation into a shorter version ready to paste back.</p></div>
+        <div class="step"><span class="step-num">04 — optional</span><h3>Learn the math</h3><p>Every score links to an interactive explanation. Simple analogy, technical formula, or full academic derivation. Toggle between levels. See the Python code that implements it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <span class="section-label">Why ContextCrunch</span>
+      <h2 class="section-title">Everything else is reactive. This isn't.</h2>
+      <p class="section-sub">LangSmith, Braintrust, Arize — they all monitor after deployment. ContextCrunch works before and during, for anyone, free.</p>
+      <div class="why-grid">
+        <div class="why-card" style="border-left:3px solid var(--accent)"><h3>Not just a token counter</h3><p>Tiktoken counts tokens. ContextCrunch tells you which are waste, why, and gives you a compressed version ready to paste.</p></div>
+        <div class="why-card"><h3>Not developer-only</h3><p>A grad student on Claude free tier and a startup's CTO have the same problem. ContextCrunch explains it at both levels.</p></div>
+        <div class="why-card"><h3>Real math, not vibes</h3><p>Shannon entropy. Product quantization. TurboQuant — Google's ICLR 2026 paper. Mathematically grounded compression.</p></div>
+        <div class="why-card" style="border-left:3px solid var(--accent)"><h3>Claude stops. ChatGPT forgets. You shouldn't.</h3><p>Neither model tells you in real time what's happening. ContextCrunch shows you exactly where you stand before it becomes a problem.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="text-align:center">
+    <div class="container" style="max-width:580px">
+      <h2 class="section-title">Start crunching for free</h2>
+      <p style="color:#555;margin-bottom:2rem;line-height:1.75">No account. No credit card. No install. Paste your conversation and see what it's really costing you.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="tool.html" class="btn btn-primary">Try the tool →</a>
+        <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-secondary">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="footer-root"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+</body>
+</html>

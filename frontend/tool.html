@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+<style>
+.tool-wrap{max-width:960px;margin:0 auto;padding:3rem 2rem 5rem}
+.sel-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.sel-lbl{font-family:var(--mono);font-size:.78rem;color:var(--muted);min-width:80px}
+.model-btns,.plan-btns{display:flex;gap:.5rem;flex-wrap:wrap}
+.mbtn{padding:.5rem 1.25rem;border-radius:6px;border:1px solid var(--border);background:var(--white);font-family:var(--mono);font-size:.82rem;cursor:pointer;transition:all .15s;color:var(--black)}
+.mbtn:hover{border-color:var(--black)}
+.mbtn.active{background:var(--black);color:var(--white);border-color:var(--black)}
+.pbtn{padding:.4rem .9rem;border-radius:100px;border:1px solid var(--border);background:transparent;font-size:.78rem;cursor:pointer;transition:all .15s;color:var(--muted)}
+.pbtn:hover{color:var(--black);border-color:var(--black)}
+.pbtn.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+.beh-note{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:.88rem;color:#444;line-height:1.6}
+.beh-tag{font-family:var(--mono);font-size:.7rem;color:var(--accent);display:block;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.08em}
+.tool-grid{display:grid;grid-template-columns:1fr 280px;gap:1.5rem;margin-bottom:1.5rem}
+@media(max-width:768px){.tool-grid{grid-template-columns:1fr}}
+.input-pane{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.pane-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);font-size:.8rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem}
+.main-ta{flex:1;min-height:220px;border:none;padding:1.25rem;font-family:var(--sans);font-size:.9rem;color:var(--black);background:var(--white);resize:vertical;outline:none;line-height:1.7}
+.main-ta::placeholder{color:var(--muted)}
+.file-zone{border:2px dashed var(--border);border-radius:8px;padding:1.25rem;text-align:center;cursor:pointer;margin:.75rem 1.25rem;transition:border-color .2s;font-size:.82rem;color:var(--muted)}
+.file-zone:hover{border-color:var(--accent);color:var(--accent)}
+.input-footer{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.5rem}
+.input-note{font-size:.72rem;font-family:var(--mono);color:var(--muted)}
+.gauges-pane{display:flex;flex-direction:column;gap:.75rem}
+.gauge-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.gauge-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.gauge-lbl{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.gauge-val{font-family:var(--serif);font-size:1.4rem}
+.gauge-val.safe{color:var(--accent)}.gauge-val.warning{color:var(--warn)}.gauge-val.danger{color:var(--danger)}
+.gauge-sub{font-size:.7rem;color:var(--muted);font-family:var(--mono);margin-top:.3rem}
+.bkdn-table{width:100%;font-size:.82rem;border-collapse:collapse}
+.bkdn-table td{padding:.35rem 0}
+.bkdn-table td:last-child{text-align:right;font-family:var(--mono)}
+.latency-bar-bg{background:var(--mid);border-radius:4px;height:6px;margin:.5rem 0;overflow:hidden}
+.latency-bar{height:100%;border-radius:4px;transition:width .6s ease}
+.model-warn{background:var(--warn-light);border:1px solid #f0c090;border-radius:8px;padding:.85rem;display:flex;gap:.75rem}
+.warn-icon{width:20px;height:20px;border-radius:50%;background:var(--warn);color:white;font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:1.5rem}
+.out-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);font-size:.82rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem}
+.saved-badge{background:var(--accent-light);color:var(--accent);font-size:.72rem;padding:.2rem .6rem;border-radius:100px;font-family:var(--mono)}
+.copy-btn{background:var(--black);color:var(--white);border:none;padding:.35rem .85rem;border-radius:5px;font-size:.78rem;cursor:pointer;font-family:var(--mono);transition:background .15s}
+.copy-btn:hover{background:var(--accent)}
+.out-text{padding:1.25rem;font-size:.88rem;line-height:1.75;color:#333;white-space:pre-wrap;max-height:300px;overflow-y:auto}
+.out-note{padding:.75rem 1.25rem;font-size:.72rem;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);background:var(--cream)}
+.math-section{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.math-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:1rem}
+.math-area{padding:1.5rem}
+.math-card{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.math-card h4{font-family:var(--serif);font-size:1.05rem;margin-bottom:.5rem}
+.math-card p{font-size:.88rem;color:#444;line-height:1.7;margin-bottom:.5rem}
+.math-card p:last-child{margin-bottom:0}
+.learn-lnk{font-size:.78rem;color:var(--accent);font-family:var(--mono)}
+.loading{display:none;text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:.88rem}
+.loading.visible{display:block}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+  <div class="tool-wrap">
+    <span class="section-label">The tool</span>
+    <h1 class="section-title">Crunch your context</h1>
+    <p class="section-sub" style="margin-bottom:2rem">Select your model and plan, paste your conversation or upload a file, and see exactly what it's costing you.</p>
+
+    <!-- MODEL SELECTOR -->
+    <div class="sel-row">
+      <span class="sel-lbl">AI tool</span>
+      <div class="model-btns" id="model-btns">
+        <button class="mbtn active" data-model="claude">Claude</button>
+        <button class="mbtn" data-model="chatgpt">ChatGPT</button>
+        <button class="mbtn" data-model="gemini">Gemini</button>
+      </div>
+    </div>
+    <div class="sel-row">
+      <span class="sel-lbl">Plan</span>
+      <div class="plan-btns" id="plan-btns"></div>
+    </div>
+
+    <div class="beh-note" id="beh-note">
+      <span class="beh-tag" id="beh-tag"></span>
+      <span id="beh-text"></span>
+    </div>
+
+    <div class="tool-grid">
+      <!-- INPUT -->
+      <div class="input-pane">
+        <div class="pane-hdr">
+          <span>Paste conversation or upload file</span>
+          <span class="token-live" id="token-live">0 tokens</span>
+        </div>
+        <textarea class="main-ta" id="main-ta" placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response&#10;&#10;Text conversations only in v0.1"></textarea>
+        <label class="file-zone" for="file-input">Drop a file or click · PDF · PPTX · DOCX · XLSX · Images · Code</label>
+        <input type="file" id="file-input" style="display:none" accept=".txt,.md,.csv,.pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.webp,.py,.js,.ts,.java,.cpp,.sql,.html,.css,.json">
+        <div class="input-footer">
+          <span class="input-note" id="file-status">Text only in v0.1</span>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-secondary" id="analyze-btn" style="font-size:.85rem;padding:.55rem 1.2rem" disabled>Analyze</button>
+            <button class="btn btn-primary" id="compress-btn" style="font-size:.85rem;padding:.55rem 1.2rem" disabled>Compress →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAUGES -->
+      <div class="gauges-pane" id="gauges-pane">
+        <div style="font-size:.82rem;color:var(--muted);font-family:var(--mono);padding:1rem;text-align:center">Paste text to see analysis</div>
+      </div>
+    </div>
+
+    <div class="loading" id="loading"><span class="spin">◌</span> <span id="loading-msg" class="loading-dots">Analyzing</span></div>
+    <div id="output-section" style="display:none">
+      <div class="out-box">
+        <div class="out-hdr">
+          <span>Compressed — ready to paste</span>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <span class="saved-badge" id="saved-badge"></span>
+            <button class="copy-btn" id="copy-btn">Copy →</button>
+          </div>
+        </div>
+        <div class="out-text" id="out-text"></div>
+        <div class="out-note" id="out-note"></div>
+      </div>
+    </div>
+    <div class="math-section" id="math-section" style="display:none">
+      <div class="math-hdr">
+        <div><span class="section-label">Math behind your result</span><h3 style="font-family:var(--serif);font-size:1.2rem">Why this conversation is wasteful</h3></div>
+        <div class="level-toggle">
+          <button class="level-btn active" data-level="simple">Simple</button>
+          <button class="level-btn" data-level="technical">Technical</button>
+          <button class="level-btn" data-level="academic">Academic</button>
+        </div>
+      </div>
+      <div class="math-area" id="math-area"></div>
+    </div>
+  </div>
+</main>
+<div id="footer-root"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="js/api.js"></script>
+<script src="js/tool.js"></script>
+</body>
+</html>

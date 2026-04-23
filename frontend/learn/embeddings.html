@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Embeddings & Semantic Meaning</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2.5rem}
+.demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.sent-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.5rem}
+.sent-input:focus{border-color:var(--accent)}
+.sim-matrix{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem;margin-top:1rem}
+.sim-matrix th{padding:.5rem .75rem;background:var(--cream);border:1px solid var(--border);font-weight:500;text-align:center;font-size:.72rem}
+.sim-matrix td{padding:.5rem .75rem;border:1px solid var(--border);text-align:center;font-weight:500}
+.redundant-list{margin-top:1rem}
+.redundant-item{background:var(--warn-light);border:1px solid #f0c090;border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem;font-size:.85rem;color:#7a3a10}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 02</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Embeddings &amp; semantic meaning</h1>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">How does AI understand meaning, not just words? Type sentences below and see real cosine similarities computed by the backend using sentence-transformers.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
+  </div>
+
+  <!-- LIVE SIMILARITY DEMO -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Live similarity matrix — real embeddings from backend</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">all-MiniLM-L6-v2 · 384 dimensions</span>
+    </div>
+    <div class="demo-body">
+      <p style="font-size:.85rem;color:#555;margin-bottom:1rem">Enter 2-5 sentences. The backend computes real cosine similarity between all pairs using sentence-transformers.</p>
+      <div id="sent-inputs">
+        <input class="sent-input" placeholder="Sentence 1 — e.g. 'The cat sat on the mat'" value="The cat sat on the mat">
+        <input class="sent-input" placeholder="Sentence 2 — e.g. 'A cat was resting on the rug'" value="A cat was resting on the rug">
+        <input class="sent-input" placeholder="Sentence 3 — e.g. 'Quantum computing uses superposition'" value="Quantum computing uses superposition">
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="runEmbeddings()" style="font-size:.85rem;padding:.45rem 1.1rem">Compute similarities →</button>
+        <button class="btn btn-secondary" onclick="addSentence()" style="font-size:.82rem;padding:.45rem .9rem">+ Add sentence</button>
+        <button class="btn btn-secondary" onclick="loadEmbedExample()" style="font-size:.82rem;padding:.45rem .9rem">Load example</button>
+      </div>
+
+      <div id="emb-result" style="margin-top:1.5rem"></div>
+    </div>
+  </div>
+
+  <!-- INSTANT CLIENT-SIDE SIMILARITY -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Quick word-overlap similarity — instant</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Client-side, no backend needed</span>
+    </div>
+    <div class="demo-body">
+      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.5rem" id="sim-a" placeholder="First sentence" oninput="quickSim()">
+      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:1rem" id="sim-b" placeholder="Second sentence" oninput="quickSim()">
+      <div id="quick-sim-result" style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem;display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+          <span style="font-family:var(--mono);font-size:.72rem;color:var(--muted);text-transform:uppercase">Word overlap similarity</span>
+          <span style="font-family:var(--serif);font-size:1.5rem" id="quick-score">—</span>
+        </div>
+        <div style="background:var(--mid);border-radius:4px;height:8px;overflow:hidden;margin-bottom:.5rem"><div id="quick-bar" style="height:100%;border-radius:4px;transition:width .4s,background .4s;background:var(--accent);width:0%"></div></div>
+        <div style="font-size:.82rem;color:#555;font-style:italic" id="quick-interp"></div>
+        <div style="font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:.5rem">Note: Real cosine similarity on 384-dim embeddings from the backend above is more accurate.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+
+  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
+    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See redundant embeddings detected in your own conversation.</p>
+    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const EMB_EXAMPLES = [
+  ['The cat sat on the mat','A cat was resting on the rug','Quantum computing uses superposition','Machine learning requires large datasets'],
+  ['ContextCrunch compresses AI conversations','We reduce token usage in chat sessions','The weather is sunny today','Neural networks learn from data'],
+];
+let embExIdx=0;
+
+function addSentence(){
+  const div=document.getElementById('sent-inputs');
+  if(div.children.length>=5) return;
+  const inp=document.createElement('input');
+  inp.className='sent-input';
+  inp.placeholder=`Sentence ${div.children.length+1}`;
+  div.appendChild(inp);
+}
+
+function loadEmbedExample(){
+  const ex=EMB_EXAMPLES[embExIdx++ % EMB_EXAMPLES.length];
+  const inputs=document.getElementById('sent-inputs');
+  // Reset to right number
+  while(inputs.children.length < ex.length){
+    const inp=document.createElement('input'); inp.className='sent-input'; inputs.appendChild(inp);
+  }
+  while(inputs.children.length > ex.length) inputs.removeChild(inputs.lastChild);
+  ex.forEach((s,i)=>inputs.children[i].value=s);
+  runEmbeddings();
+}
+
+async function runEmbeddings(){
+  const inputs=[...document.querySelectorAll('#sent-inputs .sent-input')];
+  const sentences=inputs.map(i=>i.value.trim()).filter(s=>s.length>3);
+  if(sentences.length<2){ alert('Enter at least 2 sentences'); return; }
+
+  demoLoading('emb-result','Computing real embeddings (all-MiniLM-L6-v2)');
+  try {
+    const r=await API.demoEmbeddings(sentences);
+    let html=`<div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Cosine similarity matrix (real embeddings)</div>`;
+    // Matrix
+    html+=`<table class="sim-matrix"><tr><th></th>${sentences.map((_,i)=>`<th>S${i+1}</th>`).join('')}</tr>`;
+    for(let i=0;i<sentences.length;i++){
+      html+=`<tr><th>S${i+1}</th>`;
+      for(let j=0;j<sentences.length;j++){
+        const sim=r.similarities[i][j];
+        const bg=i===j?'var(--cream)':sim>0.82?'#fdf0f0':sim>0.72?'#fdf0e8':sim>0.5?'#f0f8f4':'var(--white)';
+        const color=i===j?'var(--muted)':sim>0.82?'var(--danger)':sim>0.72?'var(--warn)':sim>0.5?'var(--accent)':'var(--black)';
+        html+=`<td style="background:${bg};color:${color}">${sim.toFixed(3)}</td>`;
+      }
+      html+='</tr>';
+    }
+    html+='</table>';
+    // Sentence legend
+    html+=`<div style="margin-top:1rem">${sentences.map((s,i)=>`<div style="font-size:.82rem;color:#555;padding:.3rem 0"><span style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">S${i+1}:</span> ${s}</div>`).join('')}</div>`;
+    // Redundant pairs
+    if(r.redundant_pairs.length>0){
+      html+=`<div class="redundant-list"><div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Redundant pairs (similarity &gt; 0.72)</div>`;
+      html+=r.redundant_pairs.map(p=>`<div class="redundant-item">S${p.i+1} ↔ S${p.j+1} · similarity ${p.similarity.toFixed(3)} · <strong>one of these can be removed without losing meaning</strong></div>`).join('');
+      html+='</div>';
+    } else {
+      html+=`<div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.85rem;color:var(--accent)">No redundant pairs detected — all sentences carry unique information.</div>`;
+    }
+    // Embedding sample
+    html+=`<div style="margin-top:1rem;font-size:.78rem;color:var(--muted);font-family:var(--mono)">Embedding dimension: ${r.embedding_dim} · First 10 values of S1: [${r.embedding_sample.map(v=>v.toFixed(3)).join(', ')}...]</div>`;
+    document.getElementById('emb-result').innerHTML=html;
+  } catch(e){
+    demoError('emb-result','Backend unavailable: '+e.message+'. Make sure api.contextcrunch.io is running.');
+  }
+}
+
+function quickSim(){
+  const a=document.getElementById('sim-a').value.trim();
+  const b=document.getElementById('sim-b').value.trim();
+  if(!a||!b){document.getElementById('quick-sim-result').style.display='none';return;}
+  const wA=new Set(a.toLowerCase().split(/\s+/).filter(w=>w.length>3));
+  const wB=new Set(b.toLowerCase().split(/\s+/).filter(w=>w.length>3));
+  const inter=[...wA].filter(w=>wB.has(w));
+  const union=new Set([...wA,...wB]);
+  const sim=union.size>0?Math.round(inter.length/union.size*100):0;
+  document.getElementById('quick-sim-result').style.display='block';
+  document.getElementById('quick-score').textContent=sim+'%';
+  document.getElementById('quick-bar').style.width=sim+'%';
+  document.getElementById('quick-bar').style.background=sim>60?'var(--danger)':sim>30?'var(--warn)':'var(--accent)';
+  const interp=sim>70?'Very similar — ContextCrunch would flag one as redundant':sim>40?'Moderately similar — may overlap':sim>15?'Some overlap — different aspects':'Low similarity — unique information';
+  document.getElementById('quick-interp').textContent=interp;
+}
+
+const levels={
+  simple:`<div class="cs"><h2>What is an embedding?</h2><p>An embedding turns text into a list of numbers — a coordinate in high-dimensional space. The key insight: texts with similar meaning end up at nearby coordinates. "The cat sat on the mat" and "A cat was resting on the rug" end up very close together, even though the words are different.</p><p>ContextCrunch uses this to find sentences in your conversation that are saying the same thing in different words. When two sentences are neighbors in embedding space, one can be removed without losing meaning.</p></div>`,
+  technical:`<div class="cs"><h2>Sentence embeddings with SBERT</h2><p>ContextCrunch uses all-MiniLM-L6-v2 to map each sentence to a 384-dimensional unit-normalized vector. Cosine similarity between embeddings correlates with human judgment of sentence similarity.</p><div class="formula">embed(s) → v ∈ ℝ³⁸⁴  (unit normalized)
+sim(A,B) = (A·B) / (‖A‖·‖B‖) ∈ [-1, 1]
+sim > 0.82 → semantically redundant (ContextCrunch threshold)</div><div class="code-block">from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+sentences = ["The cat sat on the mat", "A cat was on the rug", "Quantum computing"]
+embeddings = model.encode(sentences, normalize_embeddings=True)
+
+sim_01 = np.dot(embeddings[0], embeddings[1])  # ~0.85 similar
+sim_02 = np.dot(embeddings[0], embeddings[2])  # ~0.12 unrelated
+print(f"0↔1: {sim_01:.3f}, 0↔2: {sim_02:.3f}")</div></div>`,
+  academic:`<div class="cs"><h2>Semantic vector spaces</h2><p>SBERT (Reimers & Gurevych, 2019) extends BERT with a Siamese network structure. The resulting embeddings form a metric space where cosine distance approximates semantic distance.</p><div class="formula">Training: minimize triplet loss
+  L = max(0, ε - sim(f(a),f(p)) + sim(f(a),f(n)))
+  a=anchor, p=positive (similar), n=negative (dissimilar)
+
+Inner product bound (TurboQuant):
+  D_prod = E[|⟨y,x⟩ - ⟨y,x̂⟩|²] ≥ (‖y‖²/d)·1/4^b
+  TurboQuant achieves near-optimal at b=3.5 bits</div><div class="code-block">from sentence_transformers import SentenceTransformer
+import numpy as np
+
+def find_redundant(sentences, threshold=0.82):
+    """O(n²) redundancy detection via cosine similarity."""
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embs = model.encode(sentences, normalize_embeddings=True)
+    redundant = set()
+    for i in range(len(embs)):
+        if i in redundant: continue
+        for j in range(i+1, len(embs)):
+            if np.dot(embs[i], embs[j]) > threshold:
+                redundant.add(j)
+    return sorted(redundant)
+# Ref: Reimers & Gurevych (2019). SBERT. EMNLP.</div></div>`
+};
+
+setLevel('simple',document.querySelector('.level-btn'),levels);
+</script>
+</body>
+</html>

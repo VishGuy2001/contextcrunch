@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Quantization</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2.5rem}
+.demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.quant-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem}
+.qc{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center}
+.qnum{font-family:var(--serif);font-size:1.4rem;display:block;margin-bottom:.2rem}
+.qlbl{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:.5rem}
+.qbar-bg{background:var(--mid);height:8px;border-radius:4px;overflow:hidden;margin-bottom:.35rem}
+.qbar{height:100%;border-radius:4px;transition:width .5s}
+.qnote{font-size:.68rem;color:var(--muted);font-family:var(--mono)}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+.tq-badge{background:#eaf0f9;color:#1e4f8a;border:1px solid #b5d4f4;border-radius:6px;padding:.85rem 1.1rem;font-size:.85rem;margin-bottom:1.5rem;line-height:1.6}
+@media(max-width:600px){.quant-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 04</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Quantization</h1>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:1.5rem;max-width:620px">How do we compress embeddings without losing meaning? From scalar quantization to Google's TurboQuant (ICLR 2026) — the math ContextCrunch uses to crunch your context.</p>
+
+  <div class="tq-badge">
+    <strong style="font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#1e4f8a;display:block;margin-bottom:.35rem">TurboQuant — Google Research · ICLR 2026</strong>
+    Google's algorithm achieves 6× memory reduction on vector embeddings with near-zero accuracy loss. ContextCrunch applies this to your conversation's sentence embeddings.
+  </div>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
+  </div>
+
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Quantization levels — storage comparison</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">d=384 embedding</span>
+    </div>
+    <div class="demo-body">
+      <div class="quant-grid">
+        <div class="qc"><span class="qnum">32</span><span class="qlbl">Float32 baseline</span><div class="qbar-bg"><div class="qbar" style="width:100%;background:var(--danger)"></div></div><span class="qnote">1,536 bytes/vec</span></div>
+        <div class="qc"><span class="qnum">8</span><span class="qlbl">Int8 scalar</span><div class="qbar-bg"><div class="qbar" style="width:25%;background:var(--warn)"></div></div><span class="qnote">384 bytes · 4× smaller</span></div>
+        <div class="qc"><span class="qnum">4</span><span class="qlbl">Product quant</span><div class="qbar-bg"><div class="qbar" style="width:12%;background:#1a6b4a"></div></div><span class="qnote">192 bytes · 8× smaller</span></div>
+        <div class="qc" style="border-color:#b5d4f4;background:#f0f5fd"><span class="qnum" style="color:#1e4f8a">3.5</span><span class="qlbl" style="color:#1e4f8a">TurboQuant</span><div class="qbar-bg"><div class="qbar" style="width:6%;background:#1e4f8a"></div></div><span class="qnote" style="color:#1e4f8a">168 bytes · 9× smaller</span></div>
+      </div>
+      <p style="font-size:.85rem;color:#555;line-height:1.65;margin-bottom:1.25rem"><strong>Zero accuracy loss at 3.5 bits</strong> — TurboQuant's PolarQuant rotation makes the data distribution predictable, allowing near-optimal quantization. The 1-bit QJL stage eliminates residual bias.</p>
+    </div>
+  </div>
+
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Ask AI about quantization — live</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Powered by Groq Llama 3.1 8B</span>
+    </div>
+    <div class="demo-body">
+      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.75rem" id="ai-quant-input" placeholder="e.g. 'Walk me through quantizing a vector step by step'">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <button class="btn btn-accent" onclick="askQuantAI()" style="font-size:.85rem;padding:.45rem 1.1rem">Ask →</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('ai-quant-input').value='Walk me through the TurboQuant algorithm step by step';askQuantAI()" style="font-size:.82rem;padding:.45rem .9rem">TurboQuant steps</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('ai-quant-input').value='Show float32 vs int8 quantization with example numbers';askQuantAI()" style="font-size:.82rem;padding:.45rem .9rem">Float32 → Int8</button>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.25rem;min-height:60px" id="ai-quant-result"></div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+
+  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
+    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See TurboQuant applied to your conversation.</p>
+    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+async function askQuantAI(){
+  const q=document.getElementById('ai-quant-input').value.trim();
+  if(!q) return;
+  demoLoading('ai-quant-result','Asking Llama 3.1 8B');
+  try{const r=await API.demo('quantization',q,'quantize');document.getElementById('ai-quant-result').innerHTML=formatDemoResult(r.result);}
+  catch(e){demoError('ai-quant-result','Backend unavailable: '+e.message);}
+}
+const levels={
+  simple:`<div class="cs"><h2>What is quantization?</h2><p>A high-resolution photo stored as 50MB. Quantization converts it to a 5MB JPEG — smaller file, looks almost identical. For AI embeddings, we do the same to the numbers representing meaning.</p><p>Instead of storing each number as a 32-bit float (very precise), TurboQuant stores it as 3.5 bits (much smaller) with a mathematical trick that preserves the relationships between embeddings — which is all that matters for finding similar sentences.</p></div>`,
+  technical:`<div class="cs"><h2>Scalar → Product → TurboQuant</h2><div class="formula">Scalar (int8): q(x) = round(x·127) → 4× reduction
+Product QT (PQ): split into M subspaces, K centroids each → 8× reduction
+TurboQuant: PolarQuant rotation + QJL sign → ~9× reduction</div><div class="code-block">import numpy as np
+
+def scalar_quantize(embs: np.ndarray) -> np.ndarray:
+    return np.clip(np.round(embs*127),-127,127).astype(np.int8)
+
+def turboquant(embs: np.ndarray) -> tuple:
+    """PolarQuant + QJL. Zandieh et al. ICLR 2026."""
+    d = embs.shape[-1]
+    np.random.seed(42)
+    G = np.random.randn(d,d).astype(np.float32)
+    R, _ = np.linalg.qr(G)          # orthogonal rotation
+    y = embs @ R                     # PolarQuant rotate
+    scale = np.sqrt(d)
+    q = np.clip(np.round(y*scale),-127,127).astype(np.int8)
+    signs = np.sign(y-q.astype(np.float32)/scale).astype(np.int8)
+    signs[signs==0] = 1              # QJL error correction
+    return q, signs</div></div>`,
+  academic:`<div class="cs"><h2>Near-optimal distortion theory</h2><div class="formula">Lower bounds:
+  D_MSE ≥ 1/4^b
+  D_prod ≥ (‖y‖²/d)·(1/4^b)
+
+PolarQuant insight: after rotation Π ∈ O(d),
+  yᵢ = (Πx)ᵢ ~ N(0,1/d) independently
+  → optimal uniform quantizer, zero overhead
+
+QJL correction:
+  r = y - q/√d → s = sign(r) ∈ {+1,-1}
+  Unbiased: ⟨y,x⟩ ≈ ⟨q/√d + s·ε, x⟩
+  D_prod within factor ~2.7 of lower bound</div><div class="code-block">def turboquant_full(embs, bits=8):
+    """Near-optimal distortion TurboQuant."""
+    n, d = embs.shape
+    np.random.seed(42)
+    R, _ = np.linalg.qr(np.random.randn(d,d).astype(np.float32))
+    y = embs @ R
+    scale = np.sqrt(d)
+    maxv = 2**(bits-1)-1
+    q = np.clip(np.round(y*scale),-maxv,maxv).astype(np.int8)
+    signs = np.sign(y-q.astype(np.float32)/scale).astype(np.int8)
+    signs[signs==0]=1
+    return q, signs, R
+# Ref: Zandieh et al.(2025) arXiv:2504.19874. ICLR 2026.</div></div>`
+};
+setLevel('simple',document.querySelector('.level-btn'),levels);
+</script>
+</body>
+</html>

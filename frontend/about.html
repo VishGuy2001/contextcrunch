@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — About</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+<style>
+.about{max-width:680px;margin:0 auto;padding:4rem 2rem 5rem}
+.about h2{font-size:1.5rem;margin:2.5rem 0 .75rem}
+.about p{font-size:.98rem;color:#444;line-height:1.8;margin-bottom:1rem}
+.about a{color:var(--accent)}
+.stat-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin:1.5rem 0}
+.stat-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem}
+.stat-num{font-family:var(--serif);font-size:1.5rem;display:block}
+.stat-lbl{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.also-built{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.also-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem 1.1rem;text-decoration:none;transition:border-color .2s}
+.also-card:hover{border-color:var(--accent)}
+.also-name{font-weight:500;display:block;font-size:.9rem;margin-bottom:.2rem}
+.also-desc{font-size:.78rem;color:var(--muted);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="about">
+  <span class="section-label">About</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1.5rem">Why I built this</h1>
+
+  <p>A few months into my graduate researcher role, I built <a href="https://researchnu.com" target="_blank">ResearchNU</a> — a 7-agent AI research tool that hits 26 live data sources simultaneously. Papers, patents, grants, clinical trials, YC companies. All at once, all free. I kept the whole thing running for $31/month on AWS.</p>
+
+  <p>I was proud of that number. Then I looked more carefully at where the costs were going — and at how agents were behaving in long sessions. Context filling up mid-pipeline. Agents re-explaining things to each other that had already been established. Redundant API calls burning tokens I didn't need to burn.</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-num">$31/mo</span><span class="stat-lbl">ResearchNU running cost</span></div>
+    <div class="stat-box"><span class="stat-num">26</span><span class="stat-lbl">live data sources</span></div>
+    <div class="stat-box"><span class="stat-num">7</span><span class="stat-lbl">agents in pipeline</span></div>
+    <div class="stat-box"><span class="stat-num">~$0.001</span><span class="stat-lbl">cost per query</span></div>
+  </div>
+
+  <p>If this was happening to me at $31/month — a solo grad student trying to keep costs near zero — what was happening inside companies spending $85,000/month on AI with nobody watching?</p>
+
+  <p>I looked for a tool that would show me my token waste in real time. Count my context fill across Claude, ChatGPT, and Gemini. Tell me which parts of my conversations were redundant. Compress them intelligently using real math. I couldn't find one. So I built ContextCrunch.</p>
+
+  <h2>The math is real</h2>
+  <p>ContextCrunch uses sentence embeddings and Google's TurboQuant algorithm — presented at ICLR 2026 — to find semantic redundancy and remove it with near-zero meaning loss. Shannon entropy, cosine similarity, product quantization, O(n²) attention complexity. Real math, explained at three levels so anyone can understand it.</p>
+  <p>The learn pages are interactive — you can see the math working on your own text, with live demos powered by the real backend.</p>
+
+  <h2>Stack</h2>
+  <p>Python backend (FastAPI + sentence-transformers + TurboQuant) deployed on <strong>Google Cloud Run</strong> at <code style="font-family:var(--mono);background:var(--cream);padding:.1rem .3rem;border-radius:3px;font-size:.9em">api.contextcrunch.io</code>. Frontend deployed on Vercel. Open source on GitHub. Free to use, free to deploy.</p>
+
+  <h2>Also built by me</h2>
+  <div class="also-built">
+    <a href="https://researchnu.com" target="_blank" class="also-card"><span class="also-name">ResearchNU</span><span class="also-desc">7-agent AI research tool · 26 live sources · free</span></a>
+    <a href="https://bracketgenius.vercel.app/" target="_blank" class="also-card"><span class="also-name">BracketGenius</span><span class="also-desc">AI bracket prediction</span></a>
+  </div>
+
+  <h2>Get in touch</h2>
+  <p><a href="https://linkedin.com/in/vishnusekar/" target="_blank">LinkedIn</a> · <a href="https://github.com/VishGuy2001" target="_blank">GitHub</a> · <a href="https://researchnu.com" target="_blank">ResearchNU</a></p>
+  <p style="font-size:.85rem;color:var(--muted)">If ContextCrunch has saved you tokens, a GitHub star means a lot.</p>
+  <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-primary" style="margin-top:.5rem;font-size:.88rem">Star on GitHub →</a>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+</body>
+</html>

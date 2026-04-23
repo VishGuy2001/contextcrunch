@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Model Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+<style>
+.models-wrap{max-width:1060px;margin:0 auto;padding:3rem 2rem 5rem}
+.models-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:3rem}
+.mc{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.mc-top{padding:1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.mc-top h3{font-family:var(--serif);font-size:1.3rem}
+.mc-company{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.plan-tags{display:flex;flex-direction:column;gap:.25rem;align-items:flex-end}
+.plan-tag{font-family:var(--mono);font-size:.68rem;background:var(--cream);color:var(--muted);padding:.2rem .5rem;border-radius:4px;white-space:nowrap}
+.mc-rows{padding:1rem 1.25rem}
+.mc-row{display:flex;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--mid)}
+.mc-row:last-child{border-bottom:none}
+.row-key{font-family:var(--mono);font-size:.7rem;color:var(--muted);min-width:110px;text-transform:uppercase;letter-spacing:.06em;padding-top:.1rem;flex-shrink:0}
+.row-val{font-size:.82rem;font-weight:500;color:var(--black)}
+.row-detail{font-size:.78rem;color:#666;line-height:1.55;margin-top:.15rem}
+.mc-verdict{margin:0 1.25rem;padding:.85rem;background:var(--cream);border-radius:8px;margin-bottom:.75rem}
+.mc-tip{margin:0 1.25rem 1.25rem;padding:.85rem;background:var(--accent-light);border-radius:8px}
+.verdict-lbl,.tip-lbl{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem}
+.verdict-lbl{color:#c4602a}.tip-lbl{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="models-wrap">
+  <span class="section-label">Model comparison</span>
+  <h1 class="section-title">Why each model behaves differently</h1>
+  <p class="section-sub">Claude, ChatGPT, and Gemini all have similar token limits — but behave completely differently in practice. Here's what they don't tell you.</p>
+  <div class="models-grid">
+
+    <div class="mc" style="border-top:3px solid #c4602a">
+      <div class="mc-top"><div><h3>Claude</h3><div class="mc-company">Anthropic</div></div><div class="plan-tags"><span class="plan-tag">Free: 40k</span><span class="plan-tag">Plus: 200k</span><span class="plan-tag">Max: 200k</span></div></div>
+      <div class="mc-rows">
+        <div class="mc-row"><span class="row-key">Memory</span><div><div class="row-val">Full recall</div><div class="row-detail">Keeps entire conversation. Re-reads everything on every message.</div></div></div>
+        <div class="mc-row"><span class="row-key">At limit</span><div><div class="row-val">Honest stop</div><div class="row-detail">Tells you explicitly when you've hit the limit.</div></div></div>
+        <div class="mc-row"><span class="row-key">Truncation</span><div><div class="row-val">None</div><div class="row-detail">Never silently drops your messages.</div></div></div>
+        <div class="mc-row"><span class="row-key">Documents</span><div><div class="row-val">Full context</div><div class="row-detail">Loads entire documents by default — no RAG unless you use Projects.</div></div></div>
+        <div class="mc-row"><span class="row-key">Thinking tokens</span><div><div class="row-val">Yes (Sonnet/Opus)</div><div class="row-detail">Count toward your limit invisibly. Burns context faster.</div></div></div>
+        <div class="mc-row"><span class="row-key">Rate limits</span><div><div class="row-val">Strict on Plus</div><div class="row-detail">Can hit hourly limits well before the token limit. No clear warning.</div></div></div>
+      </div>
+      <div class="mc-verdict"><span class="verdict-lbl" style="color:#c4602a">Verdict</span><div style="font-size:.83rem;color:#444;line-height:1.6">Most honest. Stops sooner but never forgets you. Best for accuracy-critical work.</div></div>
+      <div class="mc-tip"><span class="tip-lbl">ContextCrunch tip</span><div style="font-size:.83rem;color:#444;line-height:1.6">Use Projects for large documents. Start fresh chats for new topics. Compress before hitting 70%.</div></div>
+    </div>
+
+    <div class="mc" style="border-top:3px solid #1a6b4a">
+      <div class="mc-top"><div><h3>ChatGPT</h3><div class="mc-company">OpenAI</div></div><div class="plan-tags"><span class="plan-tag">Free: 16k</span><span class="plan-tag">Plus: 128k</span><span class="plan-tag">Pro: 200k</span></div></div>
+      <div class="mc-rows">
+        <div class="mc-row"><span class="row-key">Memory</span><div><div class="row-val">Truncation</div><div class="row-detail">Silently drops oldest messages when context fills.</div></div></div>
+        <div class="mc-row"><span class="row-key">At limit</span><div><div class="row-val">Silent degradation</div><div class="row-detail">Never tells you it's forgetting. Responses quietly lose accuracy.</div></div></div>
+        <div class="mc-row"><span class="row-key">Truncation</span><div><div class="row-val">Yes — silent</div><div class="row-detail">Actively removes oldest content without notifying you.</div></div></div>
+        <div class="mc-row"><span class="row-key">Documents</span><div><div class="row-val">RAG-based</div><div class="row-detail">Splits documents and retrieves chunks. Saves tokens but may miss context.</div></div></div>
+        <div class="mc-row"><span class="row-key">Thinking tokens</span><div><div class="row-val">No (standard)</div><div class="row-detail">o1/o3 reasoning may not count against context the same way.</div></div></div>
+        <div class="mc-row"><span class="row-key">Rate limits</span><div><div class="row-val">Moderate</div><div class="row-detail">Message limits per 3-hour window — not clearly advertised.</div></div></div>
+      </div>
+      <div class="mc-verdict"><span class="verdict-lbl" style="color:#1a6b4a">Verdict</span><div style="font-size:.83rem;color:#444;line-height:1.6">Feels longer. Actually forgetting you silently. Good for casual use, risky for accuracy-critical work.</div></div>
+      <div class="mc-tip"><span class="tip-lbl">ContextCrunch tip</span><div style="font-size:.83rem;color:#444;line-height:1.6">Summarize earlier parts manually in long threads. Don't trust it to remember things from an hour ago.</div></div>
+    </div>
+
+    <div class="mc" style="border-top:3px solid #1e4f8a">
+      <div class="mc-top"><div><h3>Gemini</h3><div class="mc-company">Google</div></div><div class="plan-tags"><span class="plan-tag">Free: ~32k eff.</span><span class="plan-tag">Pro: 1M</span><span class="plan-tag">Ultra: 2M</span></div></div>
+      <div class="mc-rows">
+        <div class="mc-row"><span class="row-key">Memory</span><div><div class="row-val">Hybrid</div><div class="row-detail">Mix of full context and selective retrieval depending on model version.</div></div></div>
+        <div class="mc-row"><span class="row-key">At limit</span><div><div class="row-val">Rate limit first</div><div class="row-detail">On free tier, rate limits hit long before the 1M token window.</div></div></div>
+        <div class="mc-row"><span class="row-key">Truncation</span><div><div class="row-val">Sometimes</div><div class="row-detail">Behavior varies by model version. Flash may truncate more aggressively.</div></div></div>
+        <div class="mc-row"><span class="row-key">Documents</span><div><div class="row-val">Hybrid</div><div class="row-detail">Mix of full context and RAG depending on document size and version.</div></div></div>
+        <div class="mc-row"><span class="row-key">Thinking tokens</span><div><div class="row-val">No</div><div class="row-detail">Standard Gemini models don't expose explicit thinking tokens.</div></div></div>
+        <div class="mc-row"><span class="row-key">Rate limits</span><div><div class="row-val">Aggressive free</div><div class="row-detail">Free: 15 req/min, 1M tokens/day — rate limits bite quickly.</div></div></div>
+      </div>
+      <div class="mc-verdict"><span class="verdict-lbl" style="color:#1e4f8a">Verdict</span><div style="font-size:.83rem;color:#444;line-height:1.6">Biggest window on paper. Rate limits hit first on free tier. Quality degrades at extremes.</div></div>
+      <div class="mc-tip"><span class="tip-lbl">ContextCrunch tip</span><div style="font-size:.83rem;color:#444;line-height:1.6">Use Pro for document-heavy tasks where window size matters. Watch rate limits on free tier.</div></div>
+    </div>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+</body>
+</html>

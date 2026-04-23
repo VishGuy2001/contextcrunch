@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Attention & Latency</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:2.5rem}
+.demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.slider-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.slider-label{font-family:var(--mono);font-size:.78rem;color:var(--muted);min-width:150px}
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem}
+.cost-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center}
+.cost-num{font-family:var(--serif);font-size:1.6rem;display:block;margin-bottom:.2rem}
+.cost-lbl{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 05</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Attention &amp; latency</h1>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">Why does longer context make AI slower? Self-attention scales as O(n²) — double your tokens and you quadruple the compute. Use the slider to feel the math.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
+  </div>
+
+  <!-- LIVE O(n²) CALCULATOR -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">O(n²) latency calculator — instant</span>
+      <span id="zone-badge" style="font-family:var(--mono);font-size:.78rem;color:var(--accent)">safe zone</span>
+    </div>
+    <div class="demo-body">
+      <div class="slider-row">
+        <label class="slider-label">Tokens in context</label>
+        <input type="range" id="tok-slider" min="1000" max="200000" step="1000" value="20000" oninput="calcAttn()" style="flex:1">
+        <span style="font-family:var(--mono);font-size:.85rem;min-width:80px;text-align:right" id="tok-val">20,000</span>
+      </div>
+      <div class="slider-row">
+        <label class="slider-label">Model limit</label>
+        <select id="model-limit" onchange="calcAttn()" style="font-family:var(--mono);font-size:.82rem;padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--white)">
+          <option value="40000">Claude Free (40k)</option>
+          <option value="200000" selected>Claude Plus/Max (200k)</option>
+          <option value="16385">ChatGPT Free (16k)</option>
+          <option value="128000">ChatGPT Plus (128k)</option>
+          <option value="32000">Gemini Free (32k)</option>
+          <option value="1000000">Gemini Pro (1M)</option>
+        </select>
+        <span style="font-family:var(--mono);font-size:.85rem;min-width:80px;text-align:right" id="pct-val">10%</span>
+      </div>
+
+      <!-- Visual progress bar -->
+      <div style="background:var(--mid);border-radius:6px;height:12px;margin-bottom:1.5rem;overflow:hidden">
+        <div id="fill-bar" style="height:100%;border-radius:6px;background:var(--accent);transition:width .3s,background .3s;width:10%"></div>
+      </div>
+
+      <div class="cost-grid">
+        <div class="cost-card">
+          <span class="cost-num" id="mult-val">0.04×</span>
+          <span class="cost-lbl">attention cost vs baseline</span>
+        </div>
+        <div class="cost-card">
+          <span class="cost-num" id="pct-display">10%</span>
+          <span class="cost-lbl">context window used</span>
+        </div>
+        <div class="cost-card">
+          <span class="cost-num" id="zone-val" style="color:var(--accent)">Fast</span>
+          <span class="cost-lbl">response speed zone</span>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:#555;margin-top:1rem;font-family:var(--mono);line-height:1.6" id="attn-msg"></div>
+
+      <!-- Compression benefit -->
+      <div style="margin-top:1.25rem;padding:1rem;background:var(--white);border:1px solid var(--border);border-radius:8px">
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">ContextCrunch compression benefit</div>
+        <div class="slider-row" style="margin-bottom:.5rem">
+          <label class="slider-label">Compression ratio</label>
+          <input type="range" id="comp-slider" min="0" max="60" step="5" value="30" oninput="calcAttn()" style="flex:1">
+          <span style="font-family:var(--mono);font-size:.85rem;min-width:60px;text-align:right" id="comp-val">30%</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:.82rem;color:var(--accent)" id="speedup-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASK AI ABOUT ATTENTION -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Ask about attention — live AI explanation</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Powered by Groq</span>
+    </div>
+    <div class="demo-body">
+      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.75rem" id="ai-attn-input" placeholder="e.g. 'Why does context length affect response time quadratically?'">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <button class="btn btn-accent" onclick="askAttnAI()" style="font-size:.85rem;padding:.45rem 1.1rem">Ask →</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('ai-attn-input').value='Explain self-attention and why it is O(n²)';askAttnAI()" style="font-size:.82rem;padding:.45rem .9rem">Self-attention</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('ai-attn-input').value='What is KV cache and why does it grow?';askAttnAI()" style="font-size:.82rem;padding:.45rem .9rem">KV cache</button>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.25rem;min-height:60px" id="ai-attn-result"></div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+
+  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
+    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See the latency impact of your current conversation.</p>
+    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
+  </div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+function calcAttn(){
+  const tokens=parseInt(document.getElementById('tok-slider').value);
+  const limit=parseInt(document.getElementById('model-limit').value);
+  const comp=parseInt(document.getElementById('comp-slider').value);
+  const pct=Math.min(Math.round((tokens/limit)*100),100);
+  const mult=Math.round((pct/50)**2*100)/100;
+  const compPct=(1-(1-comp/100)**2)*100;
+  document.getElementById('tok-val').textContent=tokens.toLocaleString();
+  document.getElementById('pct-val').textContent=pct+'%';
+  document.getElementById('pct-display').textContent=pct+'%';
+  document.getElementById('mult-val').textContent=mult+'×';
+  document.getElementById('comp-val').textContent=comp+'%';
+  document.getElementById('speedup-msg').textContent=comp>0?`At ${comp}% compression: responses ~${Math.round(1/(1-comp/100)**2*10)/10}× faster. O(n²) means ${comp}% token reduction → ${Math.round(compPct)}% compute reduction.`:'No compression applied.';
+  const fillBar=document.getElementById('fill-bar');
+  fillBar.style.width=pct+'%';
+  let zone,color,msg;
+  if(pct<40){zone='Fast';color='var(--accent)';msg=`At ${pct}% fill — responses are at optimal speed (${mult}× baseline).`;}
+  else if(pct<70){zone='Slowing';color='var(--warn)';msg=`At ${pct}% fill — responses are ~${mult}× slower than conversation start. Consider compressing.`;}
+  else{zone='Slow';color='var(--danger)';msg=`At ${pct}% fill — responses are ~${mult}× slower. Compression strongly recommended.`;}
+  fillBar.style.background=color;
+  document.getElementById('zone-val').textContent=zone;
+  document.getElementById('zone-val').style.color=color;
+  document.getElementById('zone-badge').textContent=pct<40?'safe zone':pct<70?'warning zone':'danger zone';
+  document.getElementById('zone-badge').style.color=color;
+  document.getElementById('attn-msg').textContent=msg;
+  document.getElementById('pct-val').style.color=color;
+}
+calcAttn();
+
+async function askAttnAI(){
+  const q=document.getElementById('ai-attn-input').value.trim();
+  if(!q) return;
+  demoLoading('ai-attn-result','Asking Llama 3.1 8B');
+  try{const r=await API.demo('attention',q,'attention');document.getElementById('ai-attn-result').innerHTML=formatDemoResult(r.result);}
+  catch(e){demoError('ai-attn-result','Backend unavailable: '+e.message);}
+}
+
+const levels={
+  simple:`<div class="cs"><h2>Why does longer context = slower responses?</h2><p>Before answering your message, the AI reads your entire conversation from the very beginning. Every single message, every response — all of it, every time. As conversations get longer, this reading task gets exponentially harder.</p><p>It's quadratic, not linear. Double your conversation length and the AI has to do four times as much work per response. Triple it and it does nine times as much work. This is why long Claude conversations feel slow toward the end.</p></div>`,
+  technical:`<div class="cs"><h2>Self-attention complexity: O(n²)</h2><p>The attention mechanism computes relationships between all token pairs. For n tokens, that's n² pairs — hence the quadratic scaling.</p><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d) · V
+
+Complexity: O(n²·d) time, O(n²) memory
+
+Latency model:
+  T(n) ∝ n²
+  Multiplier = (pct/50)² vs baseline at 50%</div><div class="code-block">def attn_multiplier(tokens: int, limit: int) -> float:
+    pct = tokens / limit * 100
+    return round((pct / 50) ** 2, 2)
+
+# 10% fill → 0.04× (very fast)
+# 50% fill → 1.0× (baseline)
+# 90% fill → 3.24× slower</div></div>`,
+  academic:`<div class="cs"><h2>Scaled dot-product attention</h2><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d_k) · V
+Q,K ∈ ℝ^{n×d_k}, V ∈ ℝ^{n×d_v}
+
+Time: O(n²·d), Memory: O(n²)
+
+Compression speedup:
+  T_compressed ∝ (n(1-ρ))² = n²(1-ρ)²
+  At ρ=0.3: speedup = 1/(0.7)² ≈ 2.04×
+  At ρ=0.5: speedup = 1/(0.5)² = 4.0×</div><div class="code-block">import numpy as np
+
+def attention(Q, K, V):
+    """O(n²·d) — bottleneck for long-context inference."""
+    d_k = Q.shape[-1]
+    scores = (Q @ K.T) / np.sqrt(d_k)        # O(n²·d_k)
+    exp_s = np.exp(scores - scores.max(-1,keepdims=True))
+    w = exp_s / exp_s.sum(-1, keepdims=True)  # softmax O(n²)
+    return w @ V                               # O(n²·d_v)
+
+# Ref: Vaswani et al. (2017). Attention Is All You Need. NeurIPS.
+# FlashAttention (Dao 2022) reduces memory O(n²)→O(n) but time stays O(n²).</div></div>`
+};
+setLevel('simple',document.querySelector('.level-btn'),levels);
+</script>
+</body>
+</html>
