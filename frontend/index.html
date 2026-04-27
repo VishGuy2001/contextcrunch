@@ -2,180 +2,353 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ContextCrunch — Get more from every AI conversation</title>
-
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/style.css">
-
 <style>
-.hero{
-  padding:7rem 2rem 4rem;
-  text-align:center;
+/* ── Hero ── */
+.hero {
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
-/* NEW TITLE (this is what you wanted) */
-.brand-title{
-  font-family:var(--serif);
-  font-size:clamp(3.2rem,7vw,5rem);
-  margin-bottom:.5rem;
-  letter-spacing:-1px;
+.brand-title {
+  font-family: var(--serif);
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  margin-bottom: .4rem;
+  letter-spacing: -1px;
+}
+.brand-title span { color: var(--accent); }
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: .78rem;
+  color: var(--muted);
+  margin-bottom: 2.5rem;
+  letter-spacing: .05em;
 }
 
-.brand-title span{
-  color:var(--accent);
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 1.25rem;
+  line-height: 1.2;
+}
+.hero h1 em { color: var(--accent); font-style: italic; }
+
+.hero-sub {
+  font-size: .98rem;
+  color: #555;
+  max-width: 520px;
+  margin: 0 auto 2rem;
+  line-height: 1.75;
 }
 
-.brand-sub{
-  font-family:var(--mono);
-  font-size:.85rem;
-  color:var(--muted);
-  margin-bottom:2.5rem;
+.hero-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: .85rem;
 }
 
-/* Headline */
-.hero h1{
-  font-family:var(--serif);
-  font-size:clamp(2.2rem,5vw,3.2rem);
-  margin-bottom:1.5rem;
+.hero-note {
+  font-size: .72rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-bottom: 3rem;
 }
 
-.hero h1 em{
-  color:var(--accent);
-  font-style:italic;
+/* Stats bar */
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--cream);
+  max-width: 640px;
+  margin: 0 auto;
+}
+.hstat { flex: 1; padding: 1.2rem 1rem; }
+.hstat-num { font-family: var(--serif); font-size: 1.5rem; display: block; margin-bottom: .2rem; }
+.hstat-lbl { font-size: .72rem; color: var(--muted); font-family: var(--mono); }
+.hstat-div { width: 1px; background: var(--border); }
+
+/* How it works section */
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+.how-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.4rem;
+}
+.how-num {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: .5rem;
+}
+.how-card h3 {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: .5rem;
+}
+.how-card p {
+  font-size: .85rem;
+  color: #555;
+  line-height: 1.65;
 }
 
-/* Subtext */
-.hero-sub{
-  font-size:1.05rem;
-  color:#555;
-  max-width:580px;
-  margin:0 auto 2.2rem;
-  line-height:1.75;
+/* Features */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+.feature-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  gap: .85rem;
+  align-items: flex-start;
+}
+.feature-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+.feature-card h4 {
+  font-family: var(--serif);
+  font-size: .95rem;
+  margin-bottom: .25rem;
+}
+.feature-card p { font-size: .8rem; color: #555; line-height: 1.6; }
+
+/* Models section */
+.models-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem;
+  background: var(--white);
+}
+.model-card-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: .4rem;
+}
+.model-card h4 { font-family: var(--serif); font-size: 1rem; margin-bottom: .35rem; }
+.model-card p  { font-size: .78rem; color: #555; line-height: 1.6; }
+.model-card .tag {
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--muted);
+  margin-top: .5rem;
+  display: block;
 }
 
-/* Buttons */
-.hero-actions{
-  display:flex;
-  gap:1rem;
-  justify-content:center;
-  flex-wrap:wrap;
-  margin-bottom:1rem;
+/* CTA */
+.cta-section {
+  text-align: center;
+  padding: 5rem 2rem;
 }
+.cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 1rem; }
+.cta-section p  { color: #555; margin-bottom: 2rem; font-size: .95rem; }
 
-.hero-note{
-  font-size:.75rem;
-  color:var(--muted);
-  font-family:var(--mono);
-  margin-bottom:3.5rem;
-}
-
-/* Stats */
-.hero-stats{
-  display:flex;
-  justify-content:center;
-  border:1px solid var(--border);
-  border-radius:14px;
-  overflow:hidden;
-  background:var(--cream);
-  max-width:720px;
-  margin:0 auto;
-}
-
-.hstat{
-  flex:1;
-  padding:1.4rem;
-}
-
-.hstat-num{
-  font-family:var(--serif);
-  font-size:1.7rem;
-}
-
-.hstat-lbl{
-  font-size:.75rem;
-  color:var(--muted);
-}
-
-.hstat-div{
-  width:1px;
-  background:var(--border);
-}
-
-/* Hover polish */
-.btn-primary{
-  background:linear-gradient(135deg,#111,#333);
-}
-.btn-primary:hover{
-  transform:translateY(-1px);
-}
-
-/* MOBILE */
-@media(max-width:600px){
-  .hero-stats{flex-direction:column}
-  .hstat-div{display:none}
+@media (max-width: 700px) {
+  .how-grid, .models-row { grid-template-columns: 1fr; }
+  .features-grid          { grid-template-columns: 1fr; }
+  .hero-stats             { flex-direction: column; }
+  .hstat-div              { display: none; }
 }
 </style>
 </head>
-
 <body>
-
 <div id="nav-root"></div>
-
 <main>
 
-<section class="hero">
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="brand-title">Context<span>Crunch</span></div>
+    <div class="brand-sub">understand your AI · reduce token waste · keep context clean</div>
 
-  <!-- 🔥 THIS IS THE KEY ADD -->
-  <div class="brand-title">
-    Context<span>Crunch</span>
-  </div>
-  <div class="brand-sub">
-    understand your AI · reduce token waste · keep context clean
-  </div>
+    <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
 
-  <!-- EXISTING MESSAGE -->
-  <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
+    <p class="hero-sub">
+      Every message you send takes up space in your AI's memory. When it fills up,
+      models start losing context or slowing down. ContextCrunch shows you exactly
+      what's happening — and gives you a cleaner version of your conversation.
+    </p>
 
-  <p class="hero-sub">
-    Every message you send takes up space in your AI's memory. When it fills up, models start losing context or slowing down.
-    ContextCrunch shows you exactly what's happening — and gives you a cleaner version of your conversation.
-  </p>
-
-  <div class="hero-actions">
-    <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
-    <a href="learn/index.html" class="btn btn-secondary">How it works</a>
-  </div>
-
-  <p class="hero-note">
-    Free · No login · No data stored · Open source · Works with Claude, ChatGPT & Gemini
-  </p>
-
-  <div class="hero-stats">
-    <div class="hstat">
-      <div class="hstat-num">95%</div>
-      <div class="hstat-lbl">long conversations hit limits</div>
+    <div class="hero-actions">
+      <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
+      <a href="learn/index.html" class="btn btn-secondary">How it works</a>
     </div>
-    <div class="hstat-div"></div>
-    <div class="hstat">
-      <div class="hstat-num">4×</div>
-      <div class="hstat-lbl">slower at high context</div>
+
+    <p class="hero-note">Free · No login · No data stored · Open source · Works with Claude, ChatGPT &amp; Gemini</p>
+
+    <div class="hero-stats">
+      <div class="hstat">
+        <span class="hstat-num">95%</span>
+        <span class="hstat-lbl">long conversations hit limits</span>
+      </div>
+      <div class="hstat-div"></div>
+      <div class="hstat">
+        <span class="hstat-num">4×</span>
+        <span class="hstat-lbl">slower at high context</span>
+      </div>
+      <div class="hstat-div"></div>
+      <div class="hstat">
+        <span class="hstat-num">30%+</span>
+        <span class="hstat-lbl">redundant tokens</span>
+      </div>
     </div>
-    <div class="hstat-div"></div>
-    <div class="hstat">
-      <div class="hstat-num">30%+</div>
-      <div class="hstat-lbl">redundant tokens</div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <div class="section section-alt">
+    <div class="container">
+      <span class="section-label">How it works</span>
+      <h2 class="section-title">Three steps to a cleaner context</h2>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">Step 01</div>
+          <h3>Paste your conversation</h3>
+          <p>Copy any conversation from Claude, ChatGPT, or Gemini. Or upload a PDF, PPTX, or DOCX file. Pick your model and plan.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">Step 02</div>
+          <h3>See exactly what's happening</h3>
+          <p>Instant analysis: memory used, semantic redundancy, token waste, information density, cost estimate, and response speed impact.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">Step 03</div>
+          <h3>Compress and paste back</h3>
+          <p>3-stage pipeline removes filler, deduplicates repeated meaning, and rewrites for fluency. Same conversation, fewer tokens.</p>
+        </div>
+      </div>
     </div>
   </div>
 
-</section>
+  <!-- ── FEATURES ── -->
+  <div class="section">
+    <div class="container">
+      <span class="section-label">What you get</span>
+      <h2 class="section-title">Real math, not approximations</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div>
+            <h4>Token analysis</h4>
+            <p>Exact counts per speaker, cost estimate, % of context window used — updated live as you type.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔁</div>
+          <div>
+            <h4>Semantic redundancy</h4>
+            <p>sentence-transformers embeds every sentence. Flags pairs with cosine similarity above 0.88 as removable.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗑️</div>
+          <div>
+            <h4>Token waste detection</h4>
+            <p>Identifies filler phrases ("Of course!", "I'd be happy to") that add tokens without adding information.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <div>
+            <h4>Latency model</h4>
+            <p>O(n²) attention complexity means a 30% token reduction produces 2× faster responses — shown in real time.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧬</div>
+          <div>
+            <h4>3-stage compression</h4>
+            <p>sentence-transformers dedup → LLMLingua-2 pruning → Groq Llama 3.3 70B rewrite. Most work done locally, free.</p>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📚</div>
+          <div>
+            <h4>Interactive learn pages</h4>
+            <p>Six concepts explained at two levels with live demos — Shannon entropy, embeddings, attention, quantization and more.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODELS ── -->
+  <div class="section section-alt">
+    <div class="container">
+      <span class="section-label">Supported models</span>
+      <h2 class="section-title">Works with every major AI</h2>
+      <p class="section-sub">Each model uses a different tokenizer, context limit, and pricing structure. ContextCrunch accounts for all of it.</p>
+      <div class="models-row">
+        <div class="model-card">
+          <h4><span class="model-card-dot" style="background:#c4602a"></span>Claude</h4>
+          <p>Full recall — re-reads everything on every message. Haiku 4.5 · Sonnet 4.6 · Opus 4.7. Up to 1M token context.</p>
+          <span class="tag">Custom BPE · ~3.5 chars/token · Anthropic</span>
+        </div>
+        <div class="model-card">
+          <h4><span class="model-card-dot" style="background:#1a6b4a"></span>ChatGPT</h4>
+          <p>Silent truncation — drops oldest messages without warning. GPT-5.4 Mini · GPT-5.4 · GPT-5.5. Up to 1.05M tokens.</p>
+          <span class="tag">cl100k BPE · ~4.0 chars/token · OpenAI</span>
+        </div>
+        <div class="model-card">
+          <h4><span class="model-card-dot" style="background:#1e4f8a"></span>Gemini</h4>
+          <p>Largest vocabulary = fewest tokens per word. 2.5 Flash · 2.5 Pro · 3.1 Pro. 1M tokens, 2× pricing above 200k.</p>
+          <span class="tag">SentencePiece · ~4.5 chars/token · Google</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CTA ── -->
+  <div class="cta-section">
+    <div class="container">
+      <h2>Start with your current conversation</h2>
+      <p>Free. No login. No data stored. Works in your browser.</p>
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+        <a href="tool.html" class="btn btn-primary">Try the tool →</a>
+        <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-secondary">View on GitHub</a>
+      </div>
+    </div>
+  </div>
 
 </main>
-
 <div id="footer-root"></div>
-
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
-
 </body>
 </html>

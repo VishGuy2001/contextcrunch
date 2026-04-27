@@ -109,7 +109,7 @@ function resetFileZone() {
 // ── MODEL CARDS ───────────────────────────────────────────────────────
 
 function renderModelCards() {
-  document.getElementById('model-cards').querySelectorAll('.model-card').forEach(card => {
+  document.getElementById('model-tabs').querySelectorAll('.model-card').forEach(card => {
     card.addEventListener('click', () => {
       model = card.dataset.model;
       plan  = MODELS[model].defaultPlan;
@@ -165,41 +165,41 @@ function updateBehavior() {
 function showEmptyGauges() {
   const p = P();
   document.getElementById('gauges-pane').innerHTML = `
-    <div class="gauge-card" style="border-left:3px solid var(--accent)">
-      <div class="gauge-lbl" style="margin-bottom:.3rem">Ready</div>
+    <div class="g-card" style="border-left:3px solid var(--accent)">
+      <div class="g-lbl" style="margin-bottom:.3rem">Ready</div>
       <p style="font-size:.75rem;color:#555;line-height:1.6">Paste a conversation from ${MODELS[model].label}, or upload a PDF, PPTX, DOCX, or text file.</p>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val safe">0%</span></div>
-      <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
-      <div class="gauge-sub">0 / ${p.limit.toLocaleString()} tokens</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val safe">0%</span></div>
+      <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
+      <div class="g-sub">0 / ${p.limit.toLocaleString()} tokens</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.3rem">Cost rate</div>
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.3rem">Cost rate</div>
       <div style="font-family:var(--serif);font-size:1.2rem;color:${p.input ? 'var(--black)' : 'var(--accent)'}">
         ${p.input ? `$${p.input}<span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">/M tokens</span>` : 'Free'}
       </div>
-      <div class="gauge-sub">${p.input ? `$${p.input} input · $${p.output} output per 1M tokens` : 'No cost on free tier'}</div>
+      <div class="g-sub">${p.input ? `$${p.input} input · $${p.output} output per 1M tokens` : 'No cost on free tier'}</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Semantic redundancy</span><span class="gauge-val safe">—</span></div>
-      <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
-      <div class="gauge-sub">Same meaning repeated · sentence embeddings</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val safe">—</span></div>
+      <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
+      <div class="g-sub">Same meaning repeated · sentence embeddings</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Token waste</span><span class="gauge-val safe">—</span></div>
-      <div class="gauge-track"><div class="gauge-fill safe" style="width:0%"></div></div>
-      <div class="gauge-sub">Filler phrases · repeated tokens</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val safe">—</span></div>
+      <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
+      <div class="g-sub">Filler phrases · repeated tokens</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.2rem">Information density</div>
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
       <div style="font-family:var(--serif);font-size:1.3rem;color:var(--muted)">—</div>
-      <div class="gauge-sub">Shannon entropy · bits/char</div>
+      <div class="g-sub">Shannon entropy · bits/char</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.25rem">Response speed</div>
-      <div class="latency-bar-bg"><div class="latency-bar safe" style="width:0%;background:var(--accent)"></div></div>
-      <div class="gauge-sub">Slows quadratically as memory fills — O(n²)</div>
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
+      <div class="lat-bg"><div class="lat-bar safe" style="width:0%;background:var(--accent)"></div></div>
+      <div class="g-sub">Slows quadratically as memory fills — O(n²)</div>
     </div>
     <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:8px;padding:.8rem;font-size:.75rem;color:#1a4a35;line-height:1.6">
       <strong>${MODELS[model].label}</strong> — ${MODELS[model].behavior}
@@ -235,59 +235,59 @@ function updateLiveGauges() {
 
   // Special warnings
   const geminiWarn = model === 'gemini' && (plan==='pro'||plan==='ultra') && tokens > 200000
-    ? `<div class="model-warn"><div class="warn-icon">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 200k tokens — Gemini ${plan==='pro'?'2.5 Pro':'3.1 Pro'} now charging 2× input rate</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 200k tokens — Gemini ${plan==='pro'?'2.5 Pro':'3.1 Pro'} now charging 2× input rate</p></div>` : '';
   const gptWarn = model === 'chatgpt' && plan === 'plus' && tokens > 272000
-    ? `<div class="model-warn"><div class="warn-icon">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 272k tokens — GPT-5.4 now charging 2× input rate for this session</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 272k tokens — GPT-5.4 now charging 2× input rate for this session</p></div>` : '';
   const modelWarn = pct > 35 && MODELS[model].warning
-    ? `<div class="model-warn"><div class="warn-icon">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">${MODELS[model].warning}</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">${MODELS[model].warning}</p></div>` : '';
 
   document.getElementById('token-live').innerHTML =
     `<span>${tokens.toLocaleString()} tokens</span>` +
     `<span class="${status}" style="margin-left:5px">· ${pct}%</span>`;
 
   document.getElementById('gauges-pane').innerHTML = `
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val ${status}">${pct}%</span></div>
-      <div class="gauge-track"><div class="gauge-fill ${status}" style="width:${pct}%"></div></div>
-      <div class="gauge-sub">${tokens.toLocaleString()} / ${getLimit().toLocaleString()} · ${Math.max(0,getLimit()-tokens).toLocaleString()} remaining</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val ${status}">${pct}%</span></div>
+      <div class="g-track"><div class="g-fill ${status}" style="width:${pct}%"></div></div>
+      <div class="g-sub">${tokens.toLocaleString()} / ${getLimit().toLocaleString()} · ${Math.max(0,getLimit()-tokens).toLocaleString()} remaining</div>
       ${geminiWarn}${gptWarn}
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.35rem">Token breakdown</div>
-      <table class="bkdn-table">
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.35rem">Token breakdown</div>
+      <table class="g-table">
         <tr><td style="color:var(--muted)">Your messages</td><td>${hTok.toLocaleString()}</td></tr>
         <tr><td style="color:var(--muted)">AI responses</td><td>${aTok.toLocaleString()}</td></tr>
         <tr><td style="color:var(--muted)">Other content</td><td>${oTok.toLocaleString()}</td></tr>
       </table>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Cost estimate</span>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Cost estimate</span>
         <span style="font-family:var(--serif);font-size:1.2rem;color:${p.input?'var(--black)':'var(--accent)'}">${costStr}</span>
       </div>
-      <div class="gauge-sub">${p.input ? `$${p.input}/M input · $${p.output}/M output` : 'Free tier — no API cost'}</div>
+      <div class="g-sub">${p.input ? `$${p.input}/M input · $${p.output}/M output` : 'Free tier — no API cost'}</div>
       ${p.input ? `<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.25rem">@ ${tokens.toLocaleString()} tokens input</div>` : ''}
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Semantic redundancy</span><span class="gauge-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
-      <div class="gauge-track"><div class="gauge-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
-      <div class="gauge-sub">${semRed>20?'same meaning repeated — compress recommended':semRed>5?'some overlap detected':'low — unique content'}</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
+      <div class="g-track"><div class="g-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
+      <div class="g-sub">${semRed>20?'same meaning repeated — compress recommended':semRed>5?'some overlap detected':'low — unique content'}</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-hdr"><span class="gauge-lbl">Token waste</span><span class="gauge-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
-      <div class="gauge-track"><div class="gauge-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
-      <div class="gauge-sub">${tokMsg}</div>
+    <div class="g-card">
+      <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
+      <div class="g-track"><div class="g-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
+      <div class="g-sub">${tokMsg}</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.2rem">Information density</div>
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
       <div style="font-family:var(--serif);font-size:1.3rem;color:${H<3?'var(--warn)':H<4?'var(--black)':'var(--accent)'}">
         ${H} <span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
       </div>
-      <div class="gauge-sub">${H<3?'low — compresses well':H<4?'moderate — typical':'high — information-dense'}</div>
+      <div class="g-sub">${H<3?'low — compresses well':H<4?'moderate — typical':'high — information-dense'}</div>
     </div>
-    <div class="gauge-card">
-      <div class="gauge-lbl" style="margin-bottom:.25rem">Response speed</div>
-      <div class="latency-bar-bg"><div class="latency-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
-      <div class="gauge-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing':'slow — compress now'}</div>
+    <div class="g-card">
+      <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
+      <div class="lat-bg"><div class="lat-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
+      <div class="g-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing':'slow — compress now'}</div>
     </div>
     ${modelWarn}`;
 }
@@ -342,9 +342,9 @@ function showFileBreakdown(r) {
   rows += `<tr><td style="color:var(--muted)">% of limit</td><td>${r.percentage}%</td></tr>`;
   const card = document.createElement('div');
   card.id = 'file-breakdown-card';
-  card.className = 'gauge-card';
+  card.className = 'g-card';
   card.style.cssText = 'border-left:3px solid var(--accent)';
-  card.innerHTML = `<div class="gauge-lbl" style="margin-bottom:.35rem">📄 ${r.filename}</div><table class="bkdn-table">${rows}</table>${r.warning?`<div style="font-size:.62rem;color:var(--warn);font-family:var(--mono);margin-top:.3rem">⚠ ${r.warning}</div>`:''}`;
+  card.innerHTML = `<div class="g-lbl" style="margin-bottom:.35rem">📄 ${r.filename}</div><table class="g-table">${rows}</table>${r.warning?`<div style="font-size:.62rem;color:var(--warn);font-family:var(--mono);margin-top:.3rem">⚠ ${r.warning}</div>`:''}`;
   document.getElementById('gauges-pane').insertBefore(card, document.getElementById('gauges-pane').firstChild);
 }
 
@@ -408,49 +408,49 @@ async function runAnalysis() {
     const costStr  = fmtCost(r.tokens.total);
 
     document.getElementById('gauges-pane').innerHTML = `
-      <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Memory used</span><span class="gauge-val ${s}">${r.tokens.percentage}%</span></div>
-        <div class="gauge-track"><div class="gauge-fill ${s}" style="width:${r.tokens.percentage}%"></div></div>
-        <div class="gauge-sub">${r.tokens.total.toLocaleString()} / ${r.tokens.limit.toLocaleString()} · ${(r.tokens.limit-r.tokens.total).toLocaleString()} remaining</div>
+      <div class="g-card">
+        <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val ${s}">${r.tokens.percentage}%</span></div>
+        <div class="g-track"><div class="g-fill ${s}" style="width:${r.tokens.percentage}%"></div></div>
+        <div class="g-sub">${r.tokens.total.toLocaleString()} / ${r.tokens.limit.toLocaleString()} · ${(r.tokens.limit-r.tokens.total).toLocaleString()} remaining</div>
       </div>
-      <div class="gauge-card">
-        <div class="gauge-lbl" style="margin-bottom:.35rem">Token breakdown</div>
-        <table class="bkdn-table">
+      <div class="g-card">
+        <div class="g-lbl" style="margin-bottom:.35rem">Token breakdown</div>
+        <table class="g-table">
           <tr><td style="color:var(--muted)">Your messages</td><td>${r.tokens.user.toLocaleString()}</td></tr>
           <tr><td style="color:var(--muted)">AI responses</td><td>${r.tokens.ai.toLocaleString()}</td></tr>
           <tr><td style="color:var(--muted)">System overhead</td><td>${r.tokens.system.toLocaleString()}</td></tr>
         </table>
       </div>
-      <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Cost estimate</span>
+      <div class="g-card">
+        <div class="g-head"><span class="g-lbl">Cost estimate</span>
           <span style="font-family:var(--serif);font-size:1.2rem;color:${p.input?'var(--black)':'var(--accent)'}">${costStr}</span>
         </div>
-        <div class="gauge-sub">${p.input?`$${p.input}/M input · $${p.output}/M output`:'Free tier'}</div>
+        <div class="g-sub">${p.input?`$${p.input}/M input · $${p.output}/M output`:'Free tier'}</div>
         ${p.input&&r.tokens.cost_usd>0?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.25rem">Exact: $${r.tokens.cost_usd.toFixed(6)}</div>`:''}
       </div>
-      <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Semantic redundancy</span><span class="gauge-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
-        <div class="gauge-track"><div class="gauge-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
-        <div class="gauge-sub">~${r.redundancy.removable.toLocaleString()} tokens · ${r.redundancy.method} detection</div>
+      <div class="g-card">
+        <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
+        <div class="g-track"><div class="g-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
+        <div class="g-sub">~${r.redundancy.removable.toLocaleString()} tokens · ${r.redundancy.method} detection</div>
       </div>
-      <div class="gauge-card">
-        <div class="gauge-hdr"><span class="gauge-lbl">Token waste</span><span class="gauge-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
-        <div class="gauge-track"><div class="gauge-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
-        <div class="gauge-sub">${tokRed.fillers.length?tokRed.fillers.slice(0,3).map(f=>`"${f}"`).join(', '):'none detected'}</div>
+      <div class="g-card">
+        <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
+        <div class="g-track"><div class="g-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
+        <div class="g-sub">${tokRed.fillers.length?tokRed.fillers.slice(0,3).map(f=>`"${f}"`).join(', '):'none detected'}</div>
       </div>
-      <div class="gauge-card">
-        <div class="gauge-lbl" style="margin-bottom:.2rem">Information density</div>
+      <div class="g-card">
+        <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
         <div style="font-family:var(--serif);font-size:1.3rem;color:${parseFloat(r.entropy)<3?'var(--warn)':parseFloat(r.entropy)<4?'var(--black)':'var(--accent)'}">
           ${r.entropy} <span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
         </div>
-        <div class="gauge-sub">${parseFloat(r.entropy)<3?'low — compresses well':parseFloat(r.entropy)<4?'moderate':'high — dense'}</div>
+        <div class="g-sub">${parseFloat(r.entropy)<3?'low — compresses well':parseFloat(r.entropy)<4?'moderate':'high — dense'}</div>
       </div>
-      <div class="gauge-card">
-        <div class="gauge-lbl" style="margin-bottom:.25rem">Response speed</div>
-        <div class="latency-bar-bg"><div class="latency-bar ${r.attention.zone}" style="width:${Math.min(r.attention.percentage*1.1,100)}%;background:${r.attention.zone==='safe'?'var(--accent)':r.attention.zone==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
-        <div class="gauge-sub">${r.attention.message}</div>
+      <div class="g-card">
+        <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
+        <div class="lat-bg"><div class="lat-bar ${r.attention.zone}" style="width:${Math.min(r.attention.percentage*1.1,100)}%;background:${r.attention.zone==='safe'?'var(--accent)':r.attention.zone==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
+        <div class="g-sub">${r.attention.message}</div>
       </div>
-      ${r.warning?`<div class="model-warn"><div class="warn-icon">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">${r.warning}</p></div>`:''}`;
+      ${r.warning?`<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">${r.warning}</p></div>`:''}`;
     document.getElementById('math-section').style.display = 'block';
     renderMath(r, level);
   } catch(e) { alert('Analysis failed: ' + e.message); }
@@ -564,9 +564,9 @@ function toggleBtns() {
 }
 function showLoading(msg) {
   document.getElementById('loading-msg').textContent = msg;
-  document.getElementById('loading').classList.add('visible');
+  document.getElementById('loading').classList.add('on');
   document.getElementById('analyze-btn').disabled  = true;
   document.getElementById('compress-btn').disabled = true;
 }
-function hideLoading() { document.getElementById('loading').classList.remove('visible'); toggleBtns(); }
+function hideLoading() { document.getElementById('loading').classList.remove('on'); toggleBtns(); }
 function hideOutput()  { document.getElementById('output-section').style.display='none'; document.getElementById('math-section').style.display='none'; }
