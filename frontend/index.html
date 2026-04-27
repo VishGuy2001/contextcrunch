@@ -1,127 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ContextCrunch — Get more from every AI conversation</title>
-<meta name="description" content="Paste your ChatGPT, Claude, or Gemini conversation and instantly see what's eating your context, why your AI is forgetting things, and how to fix it. Free, no login.">
+
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/style.css">
+
 <style>
-.hero{padding:6rem 2rem 4rem;text-align:center}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent);font-size:.78rem;padding:.35rem .9rem;border-radius:100px;margin-bottom:2rem;font-family:var(--mono)}
-.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block}
-.hero h1{font-family:var(--serif);font-size:clamp(2.6rem,6vw,4.2rem);margin-bottom:1.5rem}
-.hero h1 em{font-style:italic;color:var(--accent)}
-.hero-sub{font-size:1.1rem;color:#555;max-width:580px;margin:0 auto 2.5rem;line-height:1.75}
-.hero-actions{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
-.hero-note{font-size:.78rem;color:var(--muted);font-family:var(--mono);margin-bottom:4rem}
-.hero-stats{display:flex;align-items:center;justify-content:center;background:var(--cream);border:1px solid var(--border);border-radius:12px;overflow:hidden;flex-wrap:wrap;max-width:720px;margin:0 auto}
-.hstat{flex:1;min-width:160px;padding:1.5rem;text-align:center}
-.hstat-num{display:block;font-family:var(--serif);font-size:1.8rem;margin-bottom:.25rem}
-.hstat-lbl{font-size:.78rem;color:var(--muted);line-height:1.4}
-.hstat-div{width:1px;height:60px;background:var(--border);flex-shrink:0}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-top:3rem}
-.step{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
-.step-num{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.5rem;display:block}
-.step h3{font-size:1.1rem;margin-bottom:.5rem}
-.step p{font-size:.88rem;color:#555;line-height:1.65}
-.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
-.why-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
-.why-card h3{font-size:1.05rem;margin-bottom:.5rem}
-.why-card p{font-size:.88rem;color:#555;line-height:1.65}
-@media(max-width:600px){.why-grid{grid-template-columns:1fr}.hstat-div{display:none}}
+.hero{
+  padding:7rem 2rem 4rem;
+  text-align:center;
+}
+
+/* NEW TITLE (this is what you wanted) */
+.brand-title{
+  font-family:var(--serif);
+  font-size:clamp(3.2rem,7vw,5rem);
+  margin-bottom:.5rem;
+  letter-spacing:-1px;
+}
+
+.brand-title span{
+  color:var(--accent);
+}
+
+.brand-sub{
+  font-family:var(--mono);
+  font-size:.85rem;
+  color:var(--muted);
+  margin-bottom:2.5rem;
+}
+
+/* Headline */
+.hero h1{
+  font-family:var(--serif);
+  font-size:clamp(2.2rem,5vw,3.2rem);
+  margin-bottom:1.5rem;
+}
+
+.hero h1 em{
+  color:var(--accent);
+  font-style:italic;
+}
+
+/* Subtext */
+.hero-sub{
+  font-size:1.05rem;
+  color:#555;
+  max-width:580px;
+  margin:0 auto 2.2rem;
+  line-height:1.75;
+}
+
+/* Buttons */
+.hero-actions{
+  display:flex;
+  gap:1rem;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:1rem;
+}
+
+.hero-note{
+  font-size:.75rem;
+  color:var(--muted);
+  font-family:var(--mono);
+  margin-bottom:3.5rem;
+}
+
+/* Stats */
+.hero-stats{
+  display:flex;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  background:var(--cream);
+  max-width:720px;
+  margin:0 auto;
+}
+
+.hstat{
+  flex:1;
+  padding:1.4rem;
+}
+
+.hstat-num{
+  font-family:var(--serif);
+  font-size:1.7rem;
+}
+
+.hstat-lbl{
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+.hstat-div{
+  width:1px;
+  background:var(--border);
+}
+
+/* Hover polish */
+.btn-primary{
+  background:linear-gradient(135deg,#111,#333);
+}
+.btn-primary:hover{
+  transform:translateY(-1px);
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .hero-stats{flex-direction:column}
+  .hstat-div{display:none}
+}
 </style>
 </head>
+
 <body>
+
 <div id="nav-root"></div>
+
 <main>
-  <section class="hero">
-    <div class="hero-badge"><span class="badge-dot"></span>v0.1 · free · no login · open source</div>
-    <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
-    <p class="hero-sub">Every message you send takes up space in your AI's memory. When it fills up, ChatGPT quietly forgets your earlier messages and Claude stops responding. ContextCrunch shows you exactly what's happening and gives you a shorter version of your conversation — same meaning, more room.</p>
-    <div class="hero-actions">
-      <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
-      <a href="learn/index.html" class="btn btn-secondary">How does it work?</a>
-    </div>
-    <p class="hero-note">Free · No login · No data stored · Open source · Works with Claude, ChatGPT &amp; Gemini</p>
-    <div class="hero-stats">
-      <div class="hstat"><span class="hstat-num">95%</span><span class="hstat-lbl">of long AI conversations hit memory limits</span></div>
-      <div class="hstat-div"></div>
-      <div class="hstat"><span class="hstat-num">4×</span><span class="hstat-lbl">slower responses when context is half full</span></div>
-      <div class="hstat-div"></div>
-      <div class="hstat"><span class="hstat-num">30%+</span><span class="hstat-lbl">of most conversations is repeated content</span></div>
-    </div>
-  </section>
 
-  <section class="section" id="how">
-    <div class="container">
-      <span class="section-label">How it works</span>
-      <h2 class="section-title">Paste. See what's wrong. Fix it.</h2>
-      <p class="section-sub">Most of ContextCrunch runs instantly in your browser. No waiting, no server, no account.</p>
-      <div class="steps">
-        <div class="step">
-          <span class="step-num">01 — instant</span>
-          <h3>Paste your conversation</h3>
-          <p>Copy any conversation from Claude, ChatGPT, or Gemini and paste it in. Or upload a PDF, Word doc, PowerPoint, spreadsheet, image, or code file. Token count appears immediately.</p>
-        </div>
-        <div class="step">
-          <span class="step-num">02 — instant</span>
-          <h3>See what's eating your context</h3>
-          <p>See exactly how full your AI's memory is, how much of your conversation is repeated, how information-dense it is, and how much slower your AI is getting as the conversation grows.</p>
-        </div>
-        <div class="step">
-          <span class="step-num">03 — on request</span>
-          <h3>Get a compressed version</h3>
-          <p>Click Compress. Our AI finds the repeated and redundant parts, rewrites your conversation to be shorter without losing any meaning, and gives you a version ready to paste back in.</p>
-        </div>
-        <div class="step">
-          <span class="step-num">04 — optional</span>
-          <h3>Understand the math</h3>
-          <p>Curious why this happens? Every score links to a plain-English explanation with an optional technical deep dive. Learn how AI memory actually works — no CS degree needed.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<section class="hero">
 
-  <section class="section section-alt">
-    <div class="container">
-      <span class="section-label">Why ContextCrunch</span>
-      <h2 class="section-title">Your AI doesn't tell you when it's struggling. We do.</h2>
-      <p class="section-sub">ChatGPT quietly forgets your earlier messages. Claude hits a hard limit and stops. Neither one tells you it's coming. ContextCrunch shows you in real time.</p>
-      <div class="why-grid">
-        <div class="why-card" style="border-left:3px solid var(--accent)">
-          <h3>Works for everyone</h3>
-          <p>Whether you're a student using ChatGPT for essays or a developer building with the API — the problem is the same. ContextCrunch explains it at whatever level you want.</p>
-        </div>
-        <div class="why-card">
-          <h3>Not just a token counter</h3>
-          <p>Counting tokens is easy. Knowing which ones are wasted, why, and getting a fixed version ready to paste — that's what ContextCrunch does.</p>
-        </div>
-        <div class="why-card">
-          <h3>Instant, no setup</h3>
-          <p>No account. No install. No credit card. Paste your conversation and see results in under a second. The analysis runs entirely in your browser.</p>
-        </div>
-        <div class="why-card" style="border-left:3px solid var(--accent)">
-          <h3>Built on real AI research</h3>
-          <p>The compression uses real sentence embeddings and semantic similarity to find what's redundant — not just keyword matching. The learn section explains the actual math if you're curious.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- 🔥 THIS IS THE KEY ADD -->
+  <div class="brand-title">
+    Context<span>Crunch</span>
+  </div>
+  <div class="brand-sub">
+    understand your AI · reduce token waste · keep context clean
+  </div>
 
-  <section class="section" style="text-align:center">
-    <div class="container" style="max-width:580px">
-      <h2 class="section-title">Try it on your last conversation</h2>
-      <p style="color:#555;margin-bottom:2rem;line-height:1.75">Copy any conversation from Claude, ChatGPT, or Gemini — even a short one — and paste it in. You might be surprised how much is already repeated.</p>
-      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-        <a href="tool.html" class="btn btn-primary">Try the tool →</a>
-        <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-secondary">View on GitHub</a>
-      </div>
+  <!-- EXISTING MESSAGE -->
+  <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
+
+  <p class="hero-sub">
+    Every message you send takes up space in your AI's memory. When it fills up, models start losing context or slowing down.
+    ContextCrunch shows you exactly what's happening — and gives you a cleaner version of your conversation.
+  </p>
+
+  <div class="hero-actions">
+    <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
+    <a href="learn/index.html" class="btn btn-secondary">How it works</a>
+  </div>
+
+  <p class="hero-note">
+    Free · No login · No data stored · Open source · Works with Claude, ChatGPT & Gemini
+  </p>
+
+  <div class="hero-stats">
+    <div class="hstat">
+      <div class="hstat-num">95%</div>
+      <div class="hstat-lbl">long conversations hit limits</div>
     </div>
-  </section>
+    <div class="hstat-div"></div>
+    <div class="hstat">
+      <div class="hstat-num">4×</div>
+      <div class="hstat-lbl">slower at high context</div>
+    </div>
+    <div class="hstat-div"></div>
+    <div class="hstat">
+      <div class="hstat-num">30%+</div>
+      <div class="hstat-lbl">redundant tokens</div>
+    </div>
+  </div>
+
+</section>
+
 </main>
+
 <div id="footer-root"></div>
+
 <script src="shared/nav.js"></script>
 <script src="shared/footer.js"></script>
+
 </body>
 </html>
