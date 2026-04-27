@@ -65,16 +65,44 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPlans();
   updateBehavior();
   setupListeners();
-
-  // Set accepted file types and zone label
-  const fi = document.getElementById('file-input');
-  if(fi) fi.setAttribute('accept', ACCEPTED_FILES);
-
-  const fz = document.getElementById('file-zone');
-  if(fz) fz.innerHTML = 'Drop a file or click to upload &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:.75rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>';
-
   showEmptyGauges();
+
+  // Reset button
+  const rb = document.getElementById('reset-btn');
+  if(rb) rb.addEventListener('click', resetTool);
 });
+
+function resetTool(){
+  text       = '';
+  analysis   = null;
+  compressed = '';
+
+  const ta = document.getElementById('main-ta');
+  if(ta) ta.value = '';
+
+  // Reset file zone to original state
+  const fz = document.getElementById('file-zone');
+  if(fz){
+    fz.classList.remove('has-file');
+    fz.innerHTML = 'Drop a file or click &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:.72rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>';
+  }
+
+  // Reset file input so same file can be re-uploaded
+  const fi = document.getElementById('file-input');
+  if(fi) fi.value = '';
+
+  document.getElementById('file-status').textContent     = 'PDF · PPTX · DOCX · plain text';
+  document.getElementById('token-live').innerHTML        = '0 tokens';
+  document.getElementById('analyze-btn').disabled        = true;
+  document.getElementById('compress-btn').disabled       = true;
+
+  // Remove file breakdown card if present
+  const bd = document.getElementById('file-breakdown-card');
+  if(bd) bd.remove();
+
+  hideOutput();
+  showEmptyGauges();
+}
 
 // ── GAUGES ────────────────────────────────────────────────────────────
 
@@ -234,9 +262,11 @@ async function handleFile(file){
     if(r.warning)        statusParts.push(`⚠ ${r.warning}`);
 
     document.getElementById('file-status').textContent = statusParts.join(' · ');
-    document.getElementById('file-zone').innerHTML = `
+    const fzEl = document.getElementById('file-zone');
+    fzEl.classList.add('has-file');
+    fzEl.innerHTML = `
       <span style="color:var(--accent);font-family:var(--mono);font-size:.78rem">✓ ${name}</span>
-      <span style="color:var(--muted);font-size:.75rem;display:block;margin-top:.25rem">${r.token_estimate.toLocaleString()} tokens · click to upload a different file</span>`;
+      <span style="color:var(--muted);font-size:.72rem;display:block;margin-top:.2rem">${r.token_estimate.toLocaleString()} tokens · click to upload a different file</span>`;
 
     // Put extracted text into the textarea so Analyze/Compress work
     if(r.text_preview && r.text_preview.length > 0){
@@ -310,6 +340,10 @@ function setupListeners(){
       btn.classList.add('active');
       renderPlans();
       updateBehavior();
+      // Clear file breakdown and output — token counts change per model
+      const bd = document.getElementById('file-breakdown-card');
+      if(bd) bd.remove();
+      hideOutput();
       text ? updateLiveGauges() : showEmptyGauges();
     });
   });
