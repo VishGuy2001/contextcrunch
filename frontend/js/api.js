@@ -96,11 +96,33 @@ const TC = {
     gemini:  { free: 4.5, pro: 4.5,   ultra: 4.5 },
   },
 
-  // Cost per 1M input tokens (USD) — verified April 26 2026
+  // Cost per 1M tokens (USD) — verified April 26 2026
+  // Source: platform.anthropic.com, platform.openai.com, cloud.google.com/vertex-ai
   costs: {
-    claude:  { free: 0,    haiku: 1.0,  sonnet: 3.0,  opus: 5.0  },
-    chatgpt: { free: 0,    plus: 2.5,   pro: 5.0  },
-    gemini:  { free: 0,    pro: 1.25,   ultra: 2.0 },
+    //           input   output  (per 1M tokens)
+    claude:  {
+      free:   { input: 0,     output: 0     },  // claude.ai free tier, no API
+      haiku:  { input: 1.0,   output: 5.0   },  // claude-haiku-4-5 API
+      sonnet: { input: 3.0,   output: 15.0  },  // claude-sonnet-4-6 API
+      opus:   { input: 5.0,   output: 25.0  },  // claude-opus-4-7 API (new tokenizer)
+    },
+    chatgpt: {
+      free:   { input: 0,     output: 0     },  // chatgpt.com free tier, no API
+      plus:   { input: 2.5,   output: 10.0  },  // gpt-4o API (ChatGPT Plus equivalent)
+      pro:    { input: 5.0,   output: 20.0  },  // gpt-4o-2025 API (Pro equivalent)
+    },
+    gemini:  {
+      free:   { input: 0,     output: 0     },  // aistudio.google.com free
+      pro:    { input: 1.25,  output: 5.0   },  // gemini-2.5-pro API, 2× above 200k
+      ultra:  { input: 2.0,   output: 8.0   },  // gemini-3.1-pro API, 2× above 200k
+    },
+  },
+
+  // API model strings for reference
+  apiModels: {
+    claude:  { haiku: 'claude-haiku-4-5', sonnet: 'claude-sonnet-4-6', opus: 'claude-opus-4-7' },
+    chatgpt: { plus: 'gpt-4o', pro: 'gpt-4o-2025-04-09' },
+    gemini:  { pro: 'gemini-2.5-pro', ultra: 'gemini-3.1-pro-preview' },
   },
 
   // File token multipliers by type
@@ -156,8 +178,9 @@ const TC = {
   getPct(tokens, model, plan){ return Math.min(Math.round((tokens / this.getLimit(model, plan)) * 100), 100); },
   getStatus(pct){ return pct < 40 ? 'safe' : pct < 70 ? 'warning' : 'danger'; },
   getCost(tokens, model, plan){
-    const rate = this.costs[model]?.[plan] || 0;
-    return (tokens / 1_000_000 * rate).toFixed(6);
+    const c = this.costs[model]?.[plan];
+    if(!c || !c.input) return '0';
+    return (tokens / 1_000_000 * c.input).toFixed(6);
   },
 
   formatLimit(n){
@@ -217,39 +240,61 @@ const TC = {
     return Math.min(Math.round((redundantSet.size/Math.max(sentences.length,1))*100),90);
   },
 
-  // Token-level redundancy — filler phrases and repeated tokens
-  // Returns count of wasteful token patterns found
+  // Token-level redundancy — filler phrases + repeated n-grams
+  // Score = estimated wasteful tokens / total tokens (capped at 60%)
   tokenRedundancy(text){
-    if(!text) return {score:0, fillers:[], repeatedPhrases:[]};
+    if(!text || text.length < 10) return {score:0, fillers:[], repeatedPhrases:[], fillerTokens:0};
+
+    // Filler phrases — confirmed zero-information patterns
+    // Only phrases that are ALWAYS filler regardless of context
     const fillers = [
-      "i'd be happy to","of course","great question","certainly","absolutely",
-      "as i mentioned","as i said","to reiterate","let me explain","in other words",
-      "it's worth noting","needless to say","as previously","i hope this helps",
-      "please let me know","happy to help","feel free to","does that make sense",
-      "i want to make sure","sounds good","that's a great point","no problem",
-      "you're welcome","thanks for asking","i understand","i see","got it",
+      "i'd be happy to","i would be happy to","of course!","great question",
+      "certainly!","absolutely!","as i mentioned earlier","as i mentioned above",
+      "as i said before","to reiterate","let me explain","in other words",
+      "it's worth noting that","needless to say","i hope this helps",
+      "please let me know if","happy to help","feel free to ask",
+      "that's a great point","you're welcome","thanks for asking",
+      "i want to make sure you understand","does that make sense",
+      "as previously mentioned","as i noted earlier",
     ];
+
     const lower = text.toLowerCase();
     const found = fillers.filter(f => lower.includes(f));
-    const fillerTokens = found.reduce((sum,f) => sum + Math.ceil(f.split(' ').length * 1.1), 0);
 
-    // Repeated n-gram detection (3-gram+)
-    const words = text.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    // Count actual filler token occurrences (may appear multiple times)
+    let fillerTokens = 0;
+    found.forEach(f => {
+      const occurrences = (lower.split(f).length - 1);
+      fillerTokens += occurrences * Math.ceil(f.split(' ').length * 1.2);
+    });
+
+    // Repeated 4-gram detection (minimum 4 words to avoid false positives)
+    // Only flag phrases that repeat 2+ times — not just common short phrases
+    const words = text.toLowerCase().replace(/[.,!?;:]/g,'').split(/\s+/).filter(w=>w.length>2);
     const ngrams = {};
-    for(let i=0;i<words.length-2;i++){
-      const g=words.slice(i,i+3).join(' ');
-      ngrams[g]=(ngrams[g]||0)+1;
+    if(words.length >= 4){
+      for(let i=0;i<words.length-3;i++){
+        const g = words.slice(i,i+4).join(' ');
+        ngrams[g] = (ngrams[g]||0) + 1;
+      }
     }
     const repeatedPhrases = Object.entries(ngrams)
-      .filter(([,c])=>c>1)
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0,5)
-      .map(([phrase,count])=>({phrase,count}));
+      .filter(([,c]) => c > 1)
+      .sort((a,b) => b[1]-a[1])
+      .slice(0, 5)
+      .map(([phrase, count]) => ({phrase, count}));
+
+    // Add tokens from repeated phrases (each extra occurrence is waste)
+    repeatedPhrases.forEach(({phrase, count}) => {
+      fillerTokens += (count - 1) * phrase.split(' ').length;
+    });
 
     const totalTokens = this.estimate(text);
-    const score = Math.min(Math.round((fillerTokens/Math.max(totalTokens,1))*100*3),50);
+    // Score = wasteful tokens / total tokens * 100
+    // No artificial multiplier — if text has no fillers, score is genuinely 0
+    const score = Math.min(Math.round((fillerTokens / Math.max(totalTokens, 1)) * 100), 60);
 
-    return {score, fillers:found.slice(0,8), repeatedPhrases, fillerTokens};
+    return {score, fillers: found.slice(0, 8), repeatedPhrases, fillerTokens};
   },
 
   // O(n²) attention cost — T(n) ∝ n²

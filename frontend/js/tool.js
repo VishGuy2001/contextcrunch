@@ -64,11 +64,32 @@ function estTokens(t) { return Math.ceil((t||'').length / getCpt()); }
 function getPct(tok)  { return Math.min(Math.round(tok / getLimit() * 100), 100); }
 function getStatus(p) { return p < 40 ? 'safe' : p < 70 ? 'warning' : 'danger'; }
 
-function fmtCost(tokens) {
+function getCosts() {
+  // Use TC.costs which has {input, output} structure
+  const c = TC.costs?.[model]?.[plan];
+  if(c && typeof c === 'object') return c;
+  // Fallback to plan object
   const p = P();
-  if(!p.input) return 'Free';
-  const c = tokens / 1_000_000 * p.input;
-  return c < 0.0001 ? '< $0.0001' : `$${c.toFixed(4)}`;
+  return { input: p.input || 0, output: p.output || 0 };
+}
+
+function fmtCost(tokens) {
+  const c = getCosts();
+  if(!c.input) return 'Free';
+  const cost = tokens / 1_000_000 * c.input;
+  return cost < 0.0001 ? '< $0.0001' : `$${cost.toFixed(4)}`;
+}
+
+function fmtCostDetail(tokens) {
+  const c = getCosts();
+  if(!c.input) return { str: 'Free', sub: 'No API cost — free tier', api: '' };
+  const inputCost = tokens / 1_000_000 * c.input;
+  const apiStr    = TC.apiModels?.[model]?.[plan] ? `model: ${TC.apiModels[model][plan]}` : '';
+  return {
+    str: inputCost < 0.0001 ? '< $0.0001' : `$${inputCost.toFixed(4)}`,
+    sub: `$${c.input}/M input · $${c.output}/M output`,
+    api: apiStr,
+  };
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────
@@ -164,29 +185,31 @@ function updateBehavior() {
 
 function showEmptyGauges() {
   const p = P();
+  const c = getCosts();
   document.getElementById('gauges-pane').innerHTML = `
-    <div class="g-card" style="border-left:3px solid var(--accent)">
+    <div class="g-card c-green">
       <div class="g-lbl" style="margin-bottom:.3rem">Ready</div>
-      <p style="font-size:.75rem;color:#555;line-height:1.6">Paste a conversation from ${MODELS[model].label}, or upload a PDF, PPTX, DOCX, or text file.</p>
+      <p style="font-size:.75rem;color:#1a4a35;line-height:1.6">Paste a conversation from ${MODELS[model].label}, or upload a PDF, PPTX, DOCX, or text file.</p>
     </div>
-    <div class="g-card">
+    <div class="g-card c-green">
       <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val safe">0%</span></div>
       <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
       <div class="g-sub">0 / ${p.limit.toLocaleString()} tokens</div>
     </div>
-    <div class="g-card">
+    <div class="g-card c-amber">
       <div class="g-lbl" style="margin-bottom:.3rem">Cost rate</div>
-      <div style="font-family:var(--serif);font-size:1.2rem;color:${p.input ? 'var(--black)' : 'var(--accent)'}">
-        ${p.input ? `$${p.input}<span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">/M tokens</span>` : 'Free'}
+      <div style="font-family:var(--serif);font-size:1.2rem;color:${c.input ? '#8a5a00' : 'var(--accent)'}">
+        ${c.input ? `$${c.input}<span style="font-size:.72rem;font-family:var(--sans);color:var(--muted)">/M input</span>` : 'Free'}
       </div>
-      <div class="g-sub">${p.input ? `$${p.input} input · $${p.output} output per 1M tokens` : 'No cost on free tier'}</div>
+      <div class="g-sub">${c.input ? `$${c.input} input · $${c.output} output per 1M tokens` : 'No API cost on free tier'}</div>
+      ${TC.apiModels?.[model]?.[plan] ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.2rem">API: ${TC.apiModels[model][plan]}</div>` : ''}
     </div>
-    <div class="g-card">
+    <div class="g-card c-red">
       <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val safe">—</span></div>
       <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
       <div class="g-sub">Same meaning repeated · sentence embeddings</div>
     </div>
-    <div class="g-card">
+    <div class="g-card c-amber">
       <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val safe">—</span></div>
       <div class="g-track"><div class="g-fill safe" style="width:0%"></div></div>
       <div class="g-sub">Filler phrases · repeated tokens</div>
@@ -245,14 +268,20 @@ function updateLiveGauges() {
     `<span>${tokens.toLocaleString()} tokens</span>` +
     `<span class="${status}" style="margin-left:5px">· ${pct}%</span>`;
 
+  const memColor = status==='safe'?'c-green':status==='warning'?'c-amber':'c-red';
+  const semColor2 = semRed>40?'c-red':semRed>20?'c-amber':'c-green';
+  const tokColor2 = tokRed.score>20?'c-amber':'c-green';
+  const densColor = H<3?'c-amber':H<4?'c-blue':'c-teal';
+  const spdColor  = status==='safe'?'c-green':status==='warning'?'c-amber':'c-red';
+
   document.getElementById('gauges-pane').innerHTML = `
-    <div class="g-card">
+    <div class="g-card ${memColor}">
       <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val ${status}">${pct}%</span></div>
       <div class="g-track"><div class="g-fill ${status}" style="width:${pct}%"></div></div>
       <div class="g-sub">${tokens.toLocaleString()} / ${getLimit().toLocaleString()} · ${Math.max(0,getLimit()-tokens).toLocaleString()} remaining</div>
       ${geminiWarn}${gptWarn}
     </div>
-    <div class="g-card">
+    <div class="g-card c-blue">
       <div class="g-lbl" style="margin-bottom:.35rem">Token breakdown</div>
       <table class="g-table">
         <tr><td style="color:var(--muted)">Your messages</td><td>${hTok.toLocaleString()}</td></tr>
@@ -260,31 +289,32 @@ function updateLiveGauges() {
         <tr><td style="color:var(--muted)">Other content</td><td>${oTok.toLocaleString()}</td></tr>
       </table>
     </div>
-    <div class="g-card">
+    <div class="g-card c-amber">
       <div class="g-head"><span class="g-lbl">Cost estimate</span>
-        <span style="font-family:var(--serif);font-size:1.2rem;color:${p.input?'var(--black)':'var(--accent)'}">${costStr}</span>
+        <span style="font-family:var(--serif);font-size:1.2rem;color:${getCosts().input?'#8a5a00':'var(--accent)'}">${fmtCostDetail(tokens).str}</span>
       </div>
-      <div class="g-sub">${p.input ? `$${p.input}/M input · $${p.output}/M output` : 'Free tier — no API cost'}</div>
-      ${p.input ? `<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.25rem">@ ${tokens.toLocaleString()} tokens input</div>` : ''}
+      <div class="g-sub">${fmtCostDetail(tokens).sub}</div>
+      ${fmtCostDetail(tokens).api ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.2rem">${fmtCostDetail(tokens).api}</div>` : ''}
+      ${getCosts().input ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.1rem">@ ${tokens.toLocaleString()} tokens</div>` : ''}
     </div>
-    <div class="g-card">
+    <div class="g-card ${semColor2}">
       <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
       <div class="g-track"><div class="g-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
       <div class="g-sub">${semRed>20?'same meaning repeated — compress recommended':semRed>5?'some overlap detected':'low — unique content'}</div>
     </div>
-    <div class="g-card">
+    <div class="g-card ${tokColor2}">
       <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
       <div class="g-track"><div class="g-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
       <div class="g-sub">${tokMsg}</div>
     </div>
-    <div class="g-card">
+    <div class="g-card ${densColor}">
       <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
-      <div style="font-family:var(--serif);font-size:1.3rem;color:${H<3?'var(--warn)':H<4?'var(--black)':'var(--accent)'}">
-        ${H} <span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
+      <div style="font-family:var(--serif);font-size:1.3rem;color:${H<3?'var(--warn)':H<4?'var(--info)':'var(--accent)'}">
+        ${H} <span style="font-size:.72rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
       </div>
       <div class="g-sub">${H<3?'low — compresses well':H<4?'moderate — typical':'high — information-dense'}</div>
     </div>
-    <div class="g-card">
+    <div class="g-card ${spdColor}">
       <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
       <div class="lat-bg"><div class="lat-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
       <div class="g-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing':'slow — compress now'}</div>
@@ -407,13 +437,20 @@ async function runAnalysis() {
     const p        = P();
     const costStr  = fmtCost(r.tokens.total);
 
+    const memC  = s==='safe'?'c-green':s==='warning'?'c-amber':'c-red';
+    const semC2 = semRed>40?'c-red':semRed>20?'c-amber':'c-green';
+    const tokC2 = tokRed.score>20?'c-amber':'c-green';
+    const eH    = parseFloat(r.entropy);
+    const denC  = eH<3?'c-amber':eH<4?'c-blue':'c-teal';
+    const spdC  = r.attention.zone==='safe'?'c-green':r.attention.zone==='warning'?'c-amber':'c-red';
+
     document.getElementById('gauges-pane').innerHTML = `
-      <div class="g-card">
+      <div class="g-card ${memC}">
         <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val ${s}">${r.tokens.percentage}%</span></div>
         <div class="g-track"><div class="g-fill ${s}" style="width:${r.tokens.percentage}%"></div></div>
         <div class="g-sub">${r.tokens.total.toLocaleString()} / ${r.tokens.limit.toLocaleString()} · ${(r.tokens.limit-r.tokens.total).toLocaleString()} remaining</div>
       </div>
-      <div class="g-card">
+      <div class="g-card c-blue">
         <div class="g-lbl" style="margin-bottom:.35rem">Token breakdown</div>
         <table class="g-table">
           <tr><td style="color:var(--muted)">Your messages</td><td>${r.tokens.user.toLocaleString()}</td></tr>
@@ -421,31 +458,32 @@ async function runAnalysis() {
           <tr><td style="color:var(--muted)">System overhead</td><td>${r.tokens.system.toLocaleString()}</td></tr>
         </table>
       </div>
-      <div class="g-card">
+      <div class="g-card c-amber">
         <div class="g-head"><span class="g-lbl">Cost estimate</span>
-          <span style="font-family:var(--serif);font-size:1.2rem;color:${p.input?'var(--black)':'var(--accent)'}">${costStr}</span>
+          <span style="font-family:var(--serif);font-size:1.2rem;color:${getCosts().input?'#8a5a00':'var(--accent)'}">${fmtCostDetail(r.tokens.total).str}</span>
         </div>
-        <div class="g-sub">${p.input?`$${p.input}/M input · $${p.output}/M output`:'Free tier'}</div>
-        ${p.input&&r.tokens.cost_usd>0?`<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.25rem">Exact: $${r.tokens.cost_usd.toFixed(6)}</div>`:''}
+        <div class="g-sub">${fmtCostDetail(r.tokens.total).sub}</div>
+        ${fmtCostDetail(r.tokens.total).api ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.2rem">${fmtCostDetail(r.tokens.total).api}</div>` : ''}
+        ${r.tokens.cost_usd>0?`<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.1rem">Exact (API): $${r.tokens.cost_usd.toFixed(6)}</div>`:''}
       </div>
-      <div class="g-card">
+      <div class="g-card ${semC2}">
         <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
         <div class="g-track"><div class="g-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
         <div class="g-sub">~${r.redundancy.removable.toLocaleString()} tokens · ${r.redundancy.method} detection</div>
       </div>
-      <div class="g-card">
+      <div class="g-card ${tokC2}">
         <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
         <div class="g-track"><div class="g-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
         <div class="g-sub">${tokRed.fillers.length?tokRed.fillers.slice(0,3).map(f=>`"${f}"`).join(', '):'none detected'}</div>
       </div>
-      <div class="g-card">
+      <div class="g-card ${denC}">
         <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
         <div style="font-family:var(--serif);font-size:1.3rem;color:${parseFloat(r.entropy)<3?'var(--warn)':parseFloat(r.entropy)<4?'var(--black)':'var(--accent)'}">
           ${r.entropy} <span style="font-size:.75rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
         </div>
         <div class="g-sub">${parseFloat(r.entropy)<3?'low — compresses well':parseFloat(r.entropy)<4?'moderate':'high — dense'}</div>
       </div>
-      <div class="g-card">
+      <div class="g-card ${spdC}">
         <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
         <div class="lat-bg"><div class="lat-bar ${r.attention.zone}" style="width:${Math.min(r.attention.percentage*1.1,100)}%;background:${r.attention.zone==='safe'?'var(--accent)':r.attention.zone==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
         <div class="g-sub">${r.attention.message}</div>

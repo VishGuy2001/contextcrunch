@@ -37,7 +37,7 @@
 .beh-text{font-size:.78rem;color:#444;line-height:1.55}
 
 /* Grid */
-.tool-grid{display:grid;grid-template-columns:1fr 244px;gap:1rem;align-items:start;margin-bottom:1rem}
+.tool-grid{display:grid;grid-template-columns:1fr 244px;gap:1rem;align-items:start;margin-bottom:.6rem}
 
 /* Input */
 .input-panel{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
@@ -47,36 +47,44 @@
 .tok-live .safe{color:var(--accent)}.tok-live .warning{color:var(--warn)}.tok-live .danger{color:var(--danger)}
 .main-ta{flex:1;min-height:150px;max-height:220px;border:none;padding:.85rem .95rem;font-family:var(--sans);font-size:.84rem;color:var(--black);background:var(--white);resize:vertical;outline:none;line-height:1.65}
 .main-ta::placeholder{color:var(--muted);font-size:.8rem}
-.file-drop{border-top:1px dashed var(--border);padding:.5rem .95rem;text-align:center;cursor:pointer;font-size:.7rem;color:var(--muted);font-family:var(--mono);background:var(--cream);transition:all .2s}
-.file-drop:hover,.file-drop.has-file{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.file-drop{border-top:2px dashed #c8d8c4;padding:.55rem .95rem;text-align:center;cursor:pointer;font-size:.7rem;color:var(--accent);font-family:var(--mono);background:#eef7ec;transition:all .2s}
+.file-drop:hover,.file-drop.has-file{border-color:var(--accent);background:var(--accent-light)}
 .ipanel-btm{display:flex;align-items:center;justify-content:space-between;padding:.45rem .9rem;border-top:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.35rem}
 .file-status{font-size:.62rem;font-family:var(--mono);color:var(--muted)}
 
 /* Gauges */
 .gauges-panel{display:flex;flex-direction:column;gap:.45rem}
-.g-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.65rem .8rem}
-.g-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem}
-.g-lbl{font-family:var(--mono);font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.g-val{font-family:var(--serif);font-size:1.1rem}
+/* Colored gauge cards */
+.g-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.75rem .9rem}
+.g-card.c-green {border-left:3px solid var(--accent);background:#f6fbf8}
+.g-card.c-amber {border-left:3px solid #d4860a;background:#fdf8f0}
+.g-card.c-red   {border-left:3px solid var(--danger);background:#fdf4f4}
+.g-card.c-blue  {border-left:3px solid var(--info);background:#f0f4fb}
+.g-card.c-teal  {border-left:3px solid #2d8f8f;background:#f0fafa}
+.g-card.c-gray  {border-left:3px solid #888;background:var(--cream)}
+.g-card.c-purple{border-left:3px solid #6b4aaa;background:#f7f4fc}
+.g-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.g-lbl{font-family:var(--mono);font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.g-val{font-family:var(--serif);font-size:1.25rem}
 .g-val.safe{color:var(--accent)}.g-val.warning{color:var(--warn)}.g-val.danger{color:var(--danger)}
-.g-track{background:var(--mid);border-radius:3px;height:4px;overflow:hidden;margin:.25rem 0}
+.g-track{background:var(--mid);border-radius:3px;height:5px;overflow:hidden;margin:.28rem 0}
 .g-fill{height:100%;border-radius:3px;transition:width .5s ease}
 .g-fill.safe{background:var(--accent)}.g-fill.warning{background:var(--warn)}.g-fill.danger{background:var(--danger)}
-.g-sub{font-size:.6rem;color:var(--muted);font-family:var(--mono);line-height:1.4}
-.g-table{width:100%;font-size:.68rem;border-collapse:collapse}
-.g-table td{padding:.18rem 0}
+.g-sub{font-size:.68rem;color:var(--muted);font-family:var(--mono);line-height:1.5}
+.g-table{width:100%;font-size:.72rem;border-collapse:collapse}
+.g-table td{padding:.22rem 0}
 .g-table td:last-child{text-align:right;font-family:var(--mono)}
-.lat-bg{background:var(--mid);border-radius:3px;height:4px;margin:.25rem 0;overflow:hidden}
+.lat-bg{background:var(--mid);border-radius:3px;height:5px;margin:.28rem 0;overflow:hidden}
 .lat-bar{height:100%;border-radius:3px;transition:width .6s ease}
-.mwarn{background:#fdf5e8;border:1px solid #f0c090;border-radius:7px;padding:.5rem .65rem;display:flex;gap:.4rem}
-.mwarn-dot{width:13px;height:13px;border-radius:50%;background:var(--warn);color:white;font-size:.52rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.mwarn{background:#fdf5e8;border:1px solid #f0c090;border-radius:7px;padding:.55rem .7rem;display:flex;gap:.45rem}
+.mwarn-dot{width:14px;height:14px;border-radius:50%;background:var(--warn);color:white;font-size:.55rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 
 /* Loading */
 .tool-loading{display:none;text-align:center;padding:1.1rem;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
 .tool-loading.on{display:block}
 
 /* Output */
-.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:.9rem}
+.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:.6rem}
 .out-head{display:flex;align-items:center;justify-content:space-between;padding:.55rem .95rem;border-bottom:1px solid var(--border);background:var(--cream);font-size:.7rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.35rem}
 .out-badge{background:var(--accent-light);color:var(--accent);font-size:.6rem;padding:.12rem .45rem;border-radius:100px;font-family:var(--mono)}
 .copy-btn{background:var(--black);color:var(--white);border:none;padding:.22rem .6rem;border-radius:5px;font-size:.66rem;cursor:pointer;font-family:var(--mono);transition:background .15s}
@@ -85,7 +93,7 @@
 .out-foot{padding:.4rem .95rem;font-size:.6rem;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);background:var(--cream)}
 
 /* Math */
-.math-box{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:.9rem}
+.math-box{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:.6rem}
 .math-head{display:flex;align-items:flex-start;justify-content:space-between;padding:.8rem 1.1rem;border-bottom:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.5rem}
 .math-head-title{font-family:var(--serif);font-size:.95rem}
 .math-body{padding:.9rem 1rem}
