@@ -7,204 +7,476 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/style.css">
 <style>
-.tool-page{max-width:1060px;margin:0 auto;padding:2rem 2rem 5rem}
-.tool-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
-.tool-top h1{font-family:var(--serif);font-size:1.6rem}
-.reset-btn{font-family:var(--mono);font-size:.7rem;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:.28rem .7rem;cursor:pointer;transition:all .15s}
-.reset-btn:hover{border-color:var(--danger);color:var(--danger)}
 
-/* Model selector */
-.model-selector{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;margin-bottom:.85rem}
-.model-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.85rem}
-.mtab{border:2px solid var(--border);border-radius:8px;padding:.65rem .85rem;cursor:pointer;background:var(--white);transition:all .15s;text-align:left}
-.mtab:hover{border-color:#bbb}
-.mtab.active{border-color:var(--black);background:var(--black);color:var(--white)}
-.mtab-name{font-family:var(--serif);font-size:.92rem;display:block;margin-bottom:.1rem}
-.mtab-note{font-family:var(--mono);font-size:.58rem;opacity:.55}
-.mtab.active .mtab-note{opacity:.65}
-.version-row{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;padding-top:.7rem;border-top:1px solid var(--border)}
-.version-lbl{font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
-.vbtn{border:1px solid var(--border);border-radius:6px;padding:.25rem .65rem;background:var(--cream);font-family:var(--mono);font-size:.66rem;cursor:pointer;color:var(--black);transition:all .15s;line-height:1.4}
-.vbtn:hover{border-color:#aaa}
-.vbtn.active{background:var(--black);color:var(--white);border-color:var(--black)}
-.vbtn.recommended{border-color:var(--accent)}
-.vbtn.recommended.active{background:var(--accent);border-color:var(--accent)}
-.tok-note{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.4rem;display:block}
+/* ── Page shell ── */
+.tool-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 4rem;
+}
 
-/* Behavior */
-.beh-strip{background:var(--cream);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.55rem .95rem;margin-bottom:.85rem;display:flex;align-items:baseline;gap:.55rem;flex-wrap:wrap}
-.beh-label{font-family:var(--mono);font-size:.58rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
-.beh-text{font-size:.78rem;color:#444;line-height:1.55}
+/* ── Page header ── */
+.tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.tool-header-left h1 {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  margin-bottom: .1rem;
+}
+.tool-header-left p {
+  font-size: .78rem;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.reset-btn {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .3rem .75rem;
+  cursor: pointer;
+  transition: all .15s;
+}
+.reset-btn:hover { border-color: var(--danger); color: var(--danger); }
 
-/* Grid */
-.tool-grid{display:grid;grid-template-columns:1fr 244px;gap:1rem;align-items:start;margin-bottom:.6rem}
+/* ── Model selector ── */
+.model-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: .5rem;
+  margin-bottom: .65rem;
+}
+.mtab {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: .6rem .8rem;
+  cursor: pointer;
+  background: var(--white);
+  transition: all .15s;
+  text-align: left;
+}
+.mtab:hover { border-color: #bbb; background: var(--cream); }
+.mtab.active {
+  border-color: var(--black);
+  background: var(--black);
+  color: var(--white);
+}
+.mtab-name { font-family: var(--serif); font-size: .9rem; display: block; }
+.mtab-note { font-family: var(--mono); font-size: .58rem; opacity: .5; display: block; margin-top: .1rem; }
+.mtab.active .mtab-note { opacity: .6; }
 
-/* Input */
-.input-panel{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.ipanel-top{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-bottom:1px solid var(--border);background:var(--cream)}
-.ipanel-lbl{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
-.tok-live{font-family:var(--mono);font-size:.68rem}
-.tok-live .safe{color:var(--accent)}.tok-live .warning{color:var(--warn)}.tok-live .danger{color:var(--danger)}
-.main-ta{flex:1;min-height:150px;max-height:220px;border:none;padding:.85rem .95rem;font-family:var(--sans);font-size:.84rem;color:var(--black);background:var(--white);resize:vertical;outline:none;line-height:1.65}
-.main-ta::placeholder{color:var(--muted);font-size:.8rem}
-.file-drop{border-top:2px dashed #c8d8c4;padding:.55rem .95rem;text-align:center;cursor:pointer;font-size:.7rem;color:var(--accent);font-family:var(--mono);background:#eef7ec;transition:all .2s}
-.file-drop:hover,.file-drop.has-file{border-color:var(--accent);background:var(--accent-light)}
-.ipanel-btm{display:flex;align-items:center;justify-content:space-between;padding:.45rem .9rem;border-top:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.35rem}
-.file-status{font-size:.62rem;font-family:var(--mono);color:var(--muted)}
+.version-bar {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  padding: .6rem .85rem;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: .5rem;
+}
+.version-lbl {
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-right: .2rem;
+}
+.vbtn {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: .22rem .6rem;
+  background: var(--white);
+  font-family: var(--mono);
+  font-size: .65rem;
+  cursor: pointer;
+  color: var(--black);
+  transition: all .15s;
+  line-height: 1.3;
+}
+.vbtn:hover { border-color: #aaa; }
+.vbtn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+.vbtn.recommended.active { background: var(--accent); border-color: var(--accent); }
+.vbtn.recommended { border-color: var(--accent); color: var(--accent); }
+#tokenizer-note {
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--muted);
+  margin-bottom: .65rem;
+  display: block;
+}
 
-/* Gauges */
-.gauges-panel{display:flex;flex-direction:column;gap:.45rem}
-/* Colored gauge cards */
-.g-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.75rem .9rem}
-.g-card.c-green {border-left:3px solid var(--accent);background:#f6fbf8}
-.g-card.c-amber {border-left:3px solid #d4860a;background:#fdf8f0}
-.g-card.c-red   {border-left:3px solid var(--danger);background:#fdf4f4}
-.g-card.c-blue  {border-left:3px solid var(--info);background:#f0f4fb}
-.g-card.c-teal  {border-left:3px solid #2d8f8f;background:#f0fafa}
-.g-card.c-gray  {border-left:3px solid #888;background:var(--cream)}
-.g-card.c-purple{border-left:3px solid #6b4aaa;background:#f7f4fc}
-.g-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
-.g-lbl{font-family:var(--mono);font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.g-val{font-family:var(--serif);font-size:1.25rem}
-.g-val.safe{color:var(--accent)}.g-val.warning{color:var(--warn)}.g-val.danger{color:var(--danger)}
-.g-track{background:var(--mid);border-radius:3px;height:5px;overflow:hidden;margin:.28rem 0}
-.g-fill{height:100%;border-radius:3px;transition:width .5s ease}
-.g-fill.safe{background:var(--accent)}.g-fill.warning{background:var(--warn)}.g-fill.danger{background:var(--danger)}
-.g-sub{font-size:.68rem;color:var(--muted);font-family:var(--mono);line-height:1.5}
-.g-table{width:100%;font-size:.72rem;border-collapse:collapse}
-.g-table td{padding:.22rem 0}
-.g-table td:last-child{text-align:right;font-family:var(--mono)}
-.lat-bg{background:var(--mid);border-radius:3px;height:5px;margin:.28rem 0;overflow:hidden}
-.lat-bar{height:100%;border-radius:3px;transition:width .6s ease}
-.mwarn{background:#fdf5e8;border:1px solid #f0c090;border-radius:7px;padding:.55rem .7rem;display:flex;gap:.45rem}
-.mwarn-dot{width:14px;height:14px;border-radius:50%;background:var(--warn);color:white;font-size:.55rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+/* ── Main two-col layout ── */
+.tool-body {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* ── Left column ── */
+.tool-left { display: flex; flex-direction: column; gap: .5rem; }
+
+/* Behavior note */
+.beh-note {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: .55rem .85rem;
+  display: flex;
+  gap: .5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.beh-label {
+  font-family: var(--mono);
+  font-size: .58rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.beh-text { font-size: .78rem; color: #444; line-height: 1.5; }
+
+/* Input box */
+.input-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.input-box-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem .85rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+}
+.input-box-lbl { font-family: var(--mono); font-size: .62rem; color: var(--muted); }
+.tok-live { font-family: var(--mono); font-size: .68rem; }
+.tok-live .safe { color: var(--accent); }
+.tok-live .warning { color: var(--warn); }
+.tok-live .danger { color: var(--danger); }
+
+.main-ta {
+  width: 100%;
+  min-height: 160px;
+  max-height: 260px;
+  border: none;
+  padding: .85rem .9rem;
+  font-family: var(--sans);
+  font-size: .85rem;
+  color: var(--black);
+  background: var(--white);
+  resize: vertical;
+  outline: none;
+  line-height: 1.65;
+  display: block;
+}
+.main-ta::placeholder { color: var(--muted); font-size: .8rem; }
+
+.file-drop {
+  border-top: 2px dashed #b8d4b0;
+  padding: .5rem .85rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: .7rem;
+  color: var(--accent);
+  font-family: var(--mono);
+  background: #f0f8ec;
+  transition: all .2s;
+}
+.file-drop:hover, .file-drop.has-file {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.input-box-btm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .45rem .85rem;
+  background: var(--cream);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+.file-status { font-size: .62rem; font-family: var(--mono); color: var(--muted); }
+.action-btns { display: flex; gap: .35rem; }
+
+/* Output box */
+.out-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.out-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem .85rem;
+  background: var(--accent-light);
+  border-bottom: 1px solid #a8d4be;
+  font-size: .7rem;
+  font-family: var(--mono);
+  color: var(--accent);
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+.out-badge {
+  background: var(--accent);
+  color: var(--white);
+  font-size: .62rem;
+  padding: .12rem .5rem;
+  border-radius: 100px;
+  font-family: var(--mono);
+}
+.copy-btn {
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  padding: .22rem .65rem;
+  border-radius: 5px;
+  font-size: .68rem;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: background .15s;
+}
+.copy-btn:hover { background: var(--accent); }
+.out-body {
+  padding: .85rem .9rem;
+  font-size: .82rem;
+  line-height: 1.75;
+  color: #333;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.out-note {
+  padding: .4rem .85rem;
+  font-size: .62rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  border-top: 1px solid var(--border);
+  background: var(--cream);
+}
+
+/* Math panel */
+.math-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.math-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem .85rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.math-title { font-family: var(--serif); font-size: .9rem; }
+.math-body { padding: .85rem .9rem; }
+.math-card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: .8rem .9rem;
+  margin-bottom: .55rem;
+}
+.math-card:last-child { margin-bottom: 0; }
+.math-card h4 { font-family: var(--serif); font-size: .88rem; margin-bottom: .25rem; }
+.math-card p  { font-size: .76rem; color: #444; line-height: 1.68; margin-bottom: .25rem; }
+.math-card p:last-child { margin-bottom: 0; }
+.learn-link { font-size: .66rem; color: var(--accent); font-family: var(--mono); }
+
+/* ── Right column — gauges ── */
+.tool-right { position: sticky; top: 70px; }
+.gauges-stack { display: flex; flex-direction: column; gap: .4rem; }
+
+.g-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .7rem .85rem;
+}
+.g-card.c-green  { border-left: 3px solid var(--accent); background: #f6fbf8; }
+.g-card.c-amber  { border-left: 3px solid #d4860a; background: #fdf8f0; }
+.g-card.c-red    { border-left: 3px solid var(--danger); background: #fdf4f4; }
+.g-card.c-blue   { border-left: 3px solid var(--info); background: #f0f4fb; }
+.g-card.c-purple { border-left: 3px solid #6b4aaa; background: #f7f4fc; }
+.g-card.c-gray   { border-left: 3px solid #888; background: var(--cream); }
+
+.g-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .28rem; }
+.g-lbl  { font-family: var(--mono); font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.g-val  { font-family: var(--serif); font-size: 1.2rem; }
+.g-val.safe    { color: var(--accent); }
+.g-val.warning { color: var(--warn); }
+.g-val.danger  { color: var(--danger); }
+.g-track { background: var(--mid); border-radius: 3px; height: 4px; overflow: hidden; margin: .25rem 0; }
+.g-fill  { height: 100%; border-radius: 3px; transition: width .5s ease; }
+.g-fill.safe    { background: var(--accent); }
+.g-fill.warning { background: var(--warn); }
+.g-fill.danger  { background: var(--danger); }
+.g-sub  { font-size: .65rem; color: var(--muted); font-family: var(--mono); line-height: 1.45; }
+.g-table { width: 100%; font-size: .7rem; border-collapse: collapse; }
+.g-table td { padding: .2rem 0; }
+.g-table td:last-child { text-align: right; font-family: var(--mono); }
+.lat-bg  { background: var(--mid); border-radius: 3px; height: 4px; margin: .25rem 0; overflow: hidden; }
+.lat-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.mwarn   { background: #fdf5e8; border: 1px solid #f0c090; border-radius: 7px; padding: .5rem .65rem; display: flex; gap: .4rem; }
+.mwarn-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--warn); color: white; font-size: .52rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
 
 /* Loading */
-.tool-loading{display:none;text-align:center;padding:1.1rem;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
-.tool-loading.on{display:block}
+.tool-loading { display: none; padding: .4rem; text-align: center; font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.tool-loading.on { display: block; }
 
-/* Output */
-.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:.6rem}
-.out-head{display:flex;align-items:center;justify-content:space-between;padding:.55rem .95rem;border-bottom:1px solid var(--border);background:var(--cream);font-size:.7rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.35rem}
-.out-badge{background:var(--accent-light);color:var(--accent);font-size:.6rem;padding:.12rem .45rem;border-radius:100px;font-family:var(--mono)}
-.copy-btn{background:var(--black);color:var(--white);border:none;padding:.22rem .6rem;border-radius:5px;font-size:.66rem;cursor:pointer;font-family:var(--mono);transition:background .15s}
-.copy-btn:hover{background:var(--accent)}
-.out-body{padding:.9rem 1rem;font-size:.8rem;line-height:1.75;color:#333;white-space:pre-wrap;max-height:220px;overflow-y:auto}
-.out-foot{padding:.4rem .95rem;font-size:.6rem;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);background:var(--cream)}
+/* formula + code in math cards */
+.formula { background: var(--white); border: 1px solid var(--border); border-radius: 5px; padding: .65rem .85rem; font-family: var(--mono); font-size: .72rem; line-height: 1.8; white-space: pre; overflow-x: auto; margin: .35rem 0; }
+.code-block { background: #1a1a1a; color: #e8e5dc; border-radius: 7px; padding: 1rem; font-family: var(--mono); font-size: .75rem; line-height: 1.65; overflow-x: auto; white-space: pre; margin: .35rem 0; }
 
-/* Math */
-.math-box{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:.6rem}
-.math-head{display:flex;align-items:flex-start;justify-content:space-between;padding:.8rem 1.1rem;border-bottom:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.5rem}
-.math-head-title{font-family:var(--serif);font-size:.95rem}
-.math-body{padding:.9rem 1rem}
-.math-card{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:.85rem .95rem;margin-bottom:.6rem}
-.math-card:last-child{margin-bottom:0}
-.math-card h4{font-family:var(--serif);font-size:.88rem;margin-bottom:.28rem}
-.math-card p{font-size:.76rem;color:#444;line-height:1.68;margin-bottom:.3rem}
-.math-card p:last-child{margin-bottom:0}
-.learn-link{font-size:.66rem;color:var(--accent);font-family:var(--mono)}
-
-@media(max-width:760px){.tool-grid{grid-template-columns:1fr}.model-tabs{grid-template-columns:1fr}}
-@media(max-width:480px){.tool-page{padding:1.1rem 1rem 4rem}}
+@media (max-width: 800px) {
+  .tool-body    { grid-template-columns: 1fr; }
+  .tool-right   { position: static; }
+  .model-row    { grid-template-columns: 1fr 1fr 1fr; }
+}
+@media (max-width: 500px) {
+  .tool-shell { padding: 1rem 1rem 4rem; }
+  .model-row  { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <div id="nav-root"></div>
 <main>
-<div class="tool-page">
+<div class="tool-shell">
 
-  <div class="tool-top">
-    <div>
-      <span class="section-label">The tool</span>
+  <!-- Header -->
+  <div class="tool-header">
+    <div class="tool-header-left">
       <h1>Crunch your context</h1>
+      <p>Pick model · paste conversation · see what's wasting tokens · compress</p>
     </div>
     <button class="reset-btn" id="reset-btn">↺ Reset</button>
   </div>
 
   <!-- Model selector -->
-  <div class="model-selector">
-    <div class="model-tabs" id="model-tabs">
-      <button class="mtab active" data-model="claude">
-        <span class="mtab-name">Claude</span>
-        <span class="mtab-note">Anthropic · full recall</span>
-      </button>
-      <button class="mtab" data-model="chatgpt">
-        <span class="mtab-name">ChatGPT</span>
-        <span class="mtab-note">OpenAI · silent truncation</span>
-      </button>
-      <button class="mtab" data-model="gemini">
-        <span class="mtab-name">Gemini</span>
-        <span class="mtab-note">Google · largest window</span>
-      </button>
-    </div>
-    <div class="version-row">
-      <span class="version-lbl">Version</span>
-      <div id="plan-btns" style="display:flex;gap:.3rem;flex-wrap:wrap"></div>
-    </div>
-    <span class="tok-note" id="tokenizer-note"></span>
+  <div class="model-row" id="model-tabs">
+    <button class="mtab active" data-model="claude">
+      <span class="mtab-name">Claude</span>
+      <span class="mtab-note">Anthropic · full recall</span>
+    </button>
+    <button class="mtab" data-model="chatgpt">
+      <span class="mtab-name">ChatGPT</span>
+      <span class="mtab-note">OpenAI · silent truncation</span>
+    </button>
+    <button class="mtab" data-model="gemini">
+      <span class="mtab-name">Gemini</span>
+      <span class="mtab-note">Google · largest window</span>
+    </button>
   </div>
 
-  <!-- Behavior strip -->
-  <div class="beh-strip" id="beh-note">
-    <span class="beh-label" id="beh-tag"></span>
-    <span class="beh-text" id="beh-text"></span>
+  <!-- Version bar -->
+  <div class="version-bar">
+    <span class="version-lbl">Version</span>
+    <div id="plan-btns" style="display:flex;gap:.3rem;flex-wrap:wrap"></div>
   </div>
+  <span id="tokenizer-note"></span>
 
-  <!-- Main grid -->
-  <div class="tool-grid">
-    <div class="input-panel">
-      <div class="ipanel-top">
-        <span class="ipanel-lbl">Paste conversation or upload file</span>
-        <span class="tok-live" id="token-live">0 tokens</span>
+  <!-- Two-column body -->
+  <div class="tool-body">
+
+    <!-- Left: input + output + math -->
+    <div class="tool-left">
+
+      <!-- Behavior note -->
+      <div class="beh-note" id="beh-note">
+        <span class="beh-label" id="beh-tag"></span>
+        <span class="beh-text"  id="beh-text"></span>
       </div>
-      <textarea class="main-ta" id="main-ta"
-        placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response"></textarea>
-      <label class="file-drop" id="file-zone" for="file-input">
-        Drop a file or click &nbsp;·&nbsp;
-        <span style="font-family:var(--mono);font-size:.66rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>
-      </label>
-      <input type="file" id="file-input" style="display:none" accept=".txt,.md,.csv,.pdf,.docx,.doc,.pptx,.ppt">
-      <div class="ipanel-btm">
-        <span class="file-status" id="file-status">PDF · PPTX · DOCX · plain text</span>
-        <div style="display:flex;gap:.3rem">
-          <button class="btn btn-secondary" id="analyze-btn" style="font-size:.73rem;padding:.35rem .8rem" disabled>Analyze</button>
-          <button class="btn btn-primary"   id="compress-btn" style="font-size:.73rem;padding:.35rem .8rem" disabled>Compress →</button>
+
+      <!-- Input -->
+      <div class="input-box">
+        <div class="input-box-top">
+          <span class="input-box-lbl">Paste conversation or upload file</span>
+          <span class="tok-live" id="token-live">0 tokens</span>
+        </div>
+        <textarea class="main-ta" id="main-ta"
+          placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response"></textarea>
+        <label class="file-drop" id="file-zone" for="file-input">
+          Drop a file or click &nbsp;·&nbsp;
+          <span style="font-family:var(--mono);font-size:.66rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>
+        </label>
+        <input type="file" id="file-input" style="display:none"
+          accept=".txt,.md,.csv,.pdf,.docx,.doc,.pptx,.ppt">
+        <div class="input-box-btm">
+          <span class="file-status" id="file-status">PDF · PPTX · DOCX · plain text</span>
+          <div class="action-btns">
+            <button class="btn btn-secondary" id="analyze-btn"
+              style="font-size:.75rem;padding:.35rem .8rem" disabled>Analyze</button>
+            <button class="btn btn-primary" id="compress-btn"
+              style="font-size:.75rem;padding:.35rem .8rem" disabled>Compress →</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="gauges-panel" id="gauges-pane"></div>
-  </div>
 
-  <div class="tool-loading" id="loading"><span id="loading-msg">Analyzing</span>...</div>
+      <div class="tool-loading" id="loading"><span id="loading-msg">Analyzing</span>...</div>
 
-  <div id="output-section" style="display:none">
-    <div class="out-box">
-      <div class="out-head">
-        <span>Compressed — ready to paste</span>
-        <div style="display:flex;align-items:center;gap:.45rem">
-          <span class="out-badge" id="saved-badge"></span>
-          <button class="copy-btn" id="copy-btn">Copy →</button>
+      <!-- Output (shown after compress) -->
+      <div id="output-section" style="display:none">
+        <div class="out-box">
+          <div class="out-head">
+            <span>Compressed — ready to paste</span>
+            <div style="display:flex;align-items:center;gap:.45rem">
+              <span class="out-badge" id="saved-badge"></span>
+              <button class="copy-btn" id="copy-btn">Copy →</button>
+            </div>
+          </div>
+          <div class="out-body" id="out-text"></div>
+          <div class="out-note" id="out-note"></div>
         </div>
       </div>
-      <div class="out-body" id="out-text"></div>
-      <div class="out-foot" id="out-note"></div>
-    </div>
-  </div>
 
-  <div class="math-box" id="math-section" style="display:none">
-    <div class="math-head">
-      <div>
-        <div class="section-label" style="margin-bottom:.15rem">Behind your result</div>
-        <div class="math-head-title">What the numbers mean</div>
+      <!-- Math panel (shown after analyze) -->
+      <div id="math-section" style="display:none">
+        <div class="math-box">
+          <div class="math-head">
+            <div class="math-title">What the numbers mean</div>
+            <div class="level-toggle">
+              <button class="level-btn active" data-level="simple">Simple</button>
+              <button class="level-btn" data-level="technical">Technical</button>
+            </div>
+          </div>
+          <div class="math-body" id="math-area"></div>
+        </div>
       </div>
-      <div class="level-toggle">
-        <button class="level-btn active" data-level="simple">Simple</button>
-        <button class="level-btn" data-level="technical">Technical</button>
-      </div>
-    </div>
-    <div class="math-body" id="math-area"></div>
-  </div>
 
+    </div>
+
+    <!-- Right: sticky gauges -->
+    <div class="tool-right">
+      <div class="gauges-stack" id="gauges-pane"></div>
+    </div>
+
+  </div>
 </div>
 </main>
 <div id="footer-root"></div>

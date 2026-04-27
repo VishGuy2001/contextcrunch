@@ -33,43 +33,43 @@
         <a href="tokens.html" class="lcard">
           <span class="lcard-num">01</span>
           <h3>Tokens &amp; context windows</h3>
-          <p>What is a token? Why do sessions fill up even on Pro? How Claude, ChatGPT, and Gemini each tokenize differently. Live tokenizer with real backend counts.</p>
-          <div class="lcard-tags"><span class="ltag">BPE</span><span class="ltag">tiktoken</span><span class="ltag">context limits</span></div>
+          <p>What is a token (the unit of text AI reads)? Why do sessions fill up even on Pro? How Claude, ChatGPT, and Gemini each split text differently — and why that means the same message costs different amounts across models.</p>
+          <div class="lcard-tags"><span class="ltag">BPE (how text gets split)</span><span class="ltag">context limits</span></div>
           <span class="lcard-footer">Live tokenizer demo →</span>
         </a>
         <a href="embeddings.html" class="lcard">
           <span class="lcard-num">02</span>
           <h3>Embeddings &amp; semantic meaning</h3>
-          <p>How does AI understand meaning, not just words? Enter sentences and see real cosine similarity computed from 384-dim embeddings — the same model ContextCrunch uses.</p>
-          <div class="lcard-tags"><span class="ltag">sentence-transformers</span><span class="ltag">cosine sim</span><span class="ltag">384-dim</span></div>
+          <p>How does AI understand meaning, not just words? Each sentence gets turned into a list of 384 numbers that represents its meaning. Similar meanings end up near each other — that's how ContextCrunch detects repeated ideas.</p>
+          <div class="lcard-tags"><span class="ltag">embeddings (meaning as numbers)</span><span class="ltag">cosine similarity (how close two meanings are)</span></div>
           <span class="lcard-footer">Live similarity matrix →</span>
         </a>
         <a href="entropy.html" class="lcard">
           <span class="lcard-num">03</span>
           <h3>Entropy &amp; information theory</h3>
-          <p>How do we measure information vs noise? Paste any text and see real Shannon entropy, character frequency distribution, and lossless compression bound.</p>
-          <div class="lcard-tags"><span class="ltag">Shannon entropy</span><span class="ltag">mutual info</span><span class="ltag">compression bound</span></div>
+          <p>How do we measure information vs noise? Shannon entropy (a score for how surprising your text is) tells us how much is genuinely new vs repeated. Low entropy = lots of filler. High entropy = dense, hard to compress.</p>
+          <div class="lcard-tags"><span class="ltag">Shannon entropy (information score)</span><span class="ltag">compression bound</span></div>
           <span class="lcard-footer">Live entropy calculator →</span>
         </a>
         <a href="quantization.html" class="lcard">
           <span class="lcard-num">04</span>
-          <h3>Quantization</h3>
-          <p>float32 → int8: 4× smaller, &lt;0.5% accuracy loss. Why it matters for running ML models locally and how LLMLingua uses it inside ContextCrunch.</p>
-          <div class="lcard-tags"><span class="ltag">int8</span><span class="ltag">LLMLingua</span><span class="ltag">memory</span></div>
+          <h3>Quantization (making models smaller)</h3>
+          <p>float32 → int8: storing numbers with less precision — 4× smaller file, less than 0.5% accuracy loss. This is what makes ContextCrunch's local compression model practical to run without an API call on every request.</p>
+          <div class="lcard-tags"><span class="ltag">int8 (compressed number format)</span><span class="ltag">LLMLingua (local pruning model)</span></div>
           <span class="lcard-footer">Format comparison →</span>
         </a>
         <a href="attention.html" class="lcard">
           <span class="lcard-num">05</span>
-          <h3>Attention &amp; latency</h3>
-          <p>Why O(n²)? Double your tokens and you quadruple the compute. Use the slider to see how compression translates into faster responses — the math is quadratic so small reductions have outsized effect.</p>
-          <div class="lcard-tags"><span class="ltag">self-attention</span><span class="ltag">O(n²)</span><span class="ltag">KV cache</span></div>
-          <span class="lcard-footer">Interactive latency calculator →</span>
+          <h3>Attention &amp; response speed</h3>
+          <p>Why do long conversations slow down? Before answering, AI re-reads every message — and that work grows quadratically (double the tokens = 4× the compute). This is why compressing 30% of tokens makes responses ~2× faster, not just 30% faster.</p>
+          <div class="lcard-tags"><span class="ltag">self-attention (AI re-reads everything)</span><span class="ltag">O(n²) (quadratic slowdown)</span><span class="ltag">KV cache</span></div>
+          <span class="lcard-footer">Interactive speed calculator →</span>
         </a>
         <a href="prompts.html" class="lcard">
           <span class="lcard-num">06</span>
           <h3>Prompt efficiency</h3>
-          <p>Paste any prompt. ContextCrunch rewrites it to say the same thing in fewer tokens using Groq Llama 3.3 70B. See exactly what was removed and why.</p>
-          <div class="lcard-tags"><span class="ltag">mutual information</span><span class="ltag">filler detection</span><span class="ltag">rewriting</span></div>
+          <p>The most common token waste is saying more than you need to. Paste any prompt and ContextCrunch rewrites it using Groq Llama 3.3 70B — same meaning, fewer tokens. Every token you save in a prompt gets re-read on every single response.</p>
+          <div class="lcard-tags"><span class="ltag">mutual information (how much two texts overlap)</span><span class="ltag">filler detection</span></div>
           <span class="lcard-footer">Live prompt compressor →</span>
         </a>
       </div>

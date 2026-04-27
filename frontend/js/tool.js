@@ -130,11 +130,11 @@ function resetFileZone() {
 // ── MODEL CARDS ───────────────────────────────────────────────────────
 
 function renderModelCards() {
-  document.getElementById('model-tabs').querySelectorAll('.model-card').forEach(card => {
+  document.getElementById('model-tabs').querySelectorAll('.mtab').forEach(card => {
     card.addEventListener('click', () => {
       model = card.dataset.model;
       plan  = MODELS[model].defaultPlan;
-      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.mtab').forEach(c => c.classList.remove('active'));
       card.classList.add('active');
       renderPlans();
       updateBehavior();
@@ -237,8 +237,7 @@ function updateLiveGauges() {
   const semRed   = TC.redundancy(text);
   const tokRed   = TC.tokenRedundancy(text);
   const mult     = TC.attentionMultiplier(tokens, getLimit());
-  const p        = P();
-  const costStr  = fmtCost(tokens);
+  const costDet  = fmtCostDetail(tokens);
 
   // Per-speaker breakdown
   const lines    = text.split('\n');
@@ -248,21 +247,36 @@ function updateLiveGauges() {
   const aTok     = Math.ceil(aCh / getCpt());
   const oTok     = Math.max(0, tokens - hTok - aTok);
 
-  const semColor = semRed > 40 ? 'var(--danger)' : semRed > 20 ? 'var(--warn)' : 'var(--accent)';
-  const semSt    = semRed > 40 ? 'danger' : semRed > 20 ? 'warning' : 'safe';
-  const tokColor = tokRed.score > 20 ? 'var(--warn)' : 'var(--accent)';
-  const tokSt    = tokRed.score > 20 ? 'warning' : 'safe';
-  const tokMsg   = tokRed.fillers.length
+  // Environmental impact — sourced from peer-reviewed research
+  // Energy: ~0.001 Wh/token based on modern H100 inference (Lin 2025, 0.39 J/token ÷ 3600)
+  // Water: Google measured 0.26 mL per Gemini median prompt (~200 tokens) → ~0.0013 mL/token
+  // CO2: ~0.03 gCO2e per Gemini median prompt → ~0.00015 g/token (global avg grid 430gCO2/kWh)
+  // Model multipliers: larger/older models use more compute per token
+  const envMultiplier = {
+    claude:  { free:1.0, haiku:1.0, sonnet:1.4, opus:2.2 },
+    chatgpt: { free:0.8, plus:1.5,  pro:2.0 },
+    gemini:  { free:0.8, pro:1.2,   ultra:1.8 },
+  }[model]?.[plan] || 1.0;
+
+  const energyWh  = (tokens * 0.00011 * envMultiplier).toFixed(4);  // Wh
+  const waterMl   = (tokens * 0.0014  * envMultiplier).toFixed(2);  // mL
+  const co2g      = (tokens * 0.00016 * envMultiplier).toFixed(4);  // gCO2e
+  const envColor  = tokens > 50000 ? 'c-amber' : 'c-green';
+
+  const semColor  = semRed > 40 ? 'var(--danger)' : semRed > 20 ? 'var(--warn)' : 'var(--accent)';
+  const semSt     = semRed > 40 ? 'danger' : semRed > 20 ? 'warning' : 'safe';
+  const tokColor  = tokRed.score > 20 ? 'var(--warn)' : 'var(--accent)';
+  const tokSt     = tokRed.score > 20 ? 'warning' : 'safe';
+  const tokMsg    = tokRed.fillers.length
     ? tokRed.fillers.slice(0,3).map(f=>`"${f}"`).join(', ') + (tokRed.fillers.length > 3 ? ` +${tokRed.fillers.length-3}` : '')
     : 'none detected';
 
-  // Special warnings
   const geminiWarn = model === 'gemini' && (plan==='pro'||plan==='ultra') && tokens > 200000
-    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 200k tokens — Gemini ${plan==='pro'?'2.5 Pro':'3.1 Pro'} now charging 2× input rate</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.65rem;color:#7a3a10;line-height:1.5">Above 200k tokens — Gemini ${plan==='pro'?'2.5 Pro':'3.1 Pro'} now charging 2× input rate</p></div>` : '';
   const gptWarn = model === 'chatgpt' && plan === 'plus' && tokens > 272000
-    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">Above 272k tokens — GPT-5.4 now charging 2× input rate for this session</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.65rem;color:#7a3a10;line-height:1.5">Above 272k tokens — GPT-5.4 now charging 2× input rate</p></div>` : '';
   const modelWarn = pct > 35 && MODELS[model].warning
-    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.68rem;color:#7a3a10;line-height:1.5">${MODELS[model].warning}</p></div>` : '';
+    ? `<div class="mwarn"><div class="mwarn-dot">!</div><p style="font-size:.65rem;color:#7a3a10;line-height:1.5">${MODELS[model].warning}</p></div>` : '';
 
   document.getElementById('token-live').innerHTML =
     `<span>${tokens.toLocaleString()} tokens</span>` +
@@ -271,18 +285,19 @@ function updateLiveGauges() {
   const memColor = status==='safe'?'c-green':status==='warning'?'c-amber':'c-red';
   const semColor2 = semRed>40?'c-red':semRed>20?'c-amber':'c-green';
   const tokColor2 = tokRed.score>20?'c-amber':'c-green';
-  const densColor = H<3?'c-amber':H<4?'c-blue':'c-teal';
-  const spdColor  = status==='safe'?'c-green':status==='warning'?'c-amber':'c-red';
 
   document.getElementById('gauges-pane').innerHTML = `
     <div class="g-card ${memColor}">
-      <div class="g-head"><span class="g-lbl">Memory used</span><span class="g-val ${status}">${pct}%</span></div>
+      <div class="g-head">
+        <span class="g-lbl">Memory used <span style="font-weight:400;text-transform:none;letter-spacing:0">(how full your AI's memory is)</span></span>
+        <span class="g-val ${status}">${pct}%</span>
+      </div>
       <div class="g-track"><div class="g-fill ${status}" style="width:${pct}%"></div></div>
-      <div class="g-sub">${tokens.toLocaleString()} / ${getLimit().toLocaleString()} · ${Math.max(0,getLimit()-tokens).toLocaleString()} remaining</div>
+      <div class="g-sub">${tokens.toLocaleString()} / ${getLimit().toLocaleString()} tokens · ${Math.max(0,getLimit()-tokens).toLocaleString()} remaining</div>
       ${geminiWarn}${gptWarn}
     </div>
     <div class="g-card c-blue">
-      <div class="g-lbl" style="margin-bottom:.35rem">Token breakdown</div>
+      <div class="g-lbl" style="margin-bottom:.3rem">Who's using the memory</div>
       <table class="g-table">
         <tr><td style="color:var(--muted)">Your messages</td><td>${hTok.toLocaleString()}</td></tr>
         <tr><td style="color:var(--muted)">AI responses</td><td>${aTok.toLocaleString()}</td></tr>
@@ -290,35 +305,50 @@ function updateLiveGauges() {
       </table>
     </div>
     <div class="g-card c-amber">
-      <div class="g-head"><span class="g-lbl">Cost estimate</span>
-        <span style="font-family:var(--serif);font-size:1.2rem;color:${getCosts().input?'#8a5a00':'var(--accent)'}">${fmtCostDetail(tokens).str}</span>
+      <div class="g-head">
+        <span class="g-lbl">API cost estimate</span>
+        <span style="font-family:var(--serif);font-size:1.2rem;color:${getCosts().input?'#8a5a00':'var(--accent)'}">${costDet.str}</span>
       </div>
-      <div class="g-sub">${fmtCostDetail(tokens).sub}</div>
-      ${fmtCostDetail(tokens).api ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.2rem">${fmtCostDetail(tokens).api}</div>` : ''}
-      ${getCosts().input ? `<div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:.1rem">@ ${tokens.toLocaleString()} tokens</div>` : ''}
+      <div class="g-sub">${costDet.sub}</div>
+      ${costDet.api ? `<div style="font-family:var(--mono);font-size:.58rem;color:var(--muted);margin-top:.15rem">${costDet.api}</div>` : ''}
     </div>
     <div class="g-card ${semColor2}">
-      <div class="g-head"><span class="g-lbl">Semantic redundancy</span><span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span></div>
+      <div class="g-head">
+        <span class="g-lbl">Repeated meaning <span style="font-weight:400;text-transform:none;letter-spacing:0">(same thing said twice)</span></span>
+        <span class="g-val ${semSt}" style="color:${semColor}">${semRed}%</span>
+      </div>
       <div class="g-track"><div class="g-fill ${semSt}" style="width:${semRed}%;background:${semColor}"></div></div>
-      <div class="g-sub">${semRed>20?'same meaning repeated — compress recommended':semRed>5?'some overlap detected':'low — unique content'}</div>
+      <div class="g-sub">${semRed>20?'same ideas repeated in different words — compress':semRed>5?'a little overlap detected':'low — mostly unique content'}</div>
     </div>
     <div class="g-card ${tokColor2}">
-      <div class="g-head"><span class="g-lbl">Token waste</span><span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span></div>
+      <div class="g-head">
+        <span class="g-lbl">Filler waste <span style="font-weight:400;text-transform:none;letter-spacing:0">(words that add no info)</span></span>
+        <span class="g-val ${tokSt}" style="color:${tokColor}">${tokRed.score}%</span>
+      </div>
       <div class="g-track"><div class="g-fill ${tokSt}" style="width:${Math.min(tokRed.score*2,100)}%;background:${tokColor}"></div></div>
       <div class="g-sub">${tokMsg}</div>
     </div>
-    <div class="g-card ${densColor}">
-      <div class="g-lbl" style="margin-bottom:.2rem">Information density</div>
-      <div style="font-family:var(--serif);font-size:1.3rem;color:${H<3?'var(--warn)':H<4?'var(--info)':'var(--accent)'}">
-        ${H} <span style="font-size:.72rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
+    <div class="g-card c-purple">
+      <div class="g-lbl" style="margin-bottom:.2rem">Information density <span style="font-weight:400;text-transform:none;letter-spacing:0">(how much is actually new)</span></div>
+      <div style="font-family:var(--serif);font-size:1.2rem;color:${H<3?'var(--warn)':H<4?'var(--info)':'var(--accent)'}">
+        ${H} <span style="font-size:.7rem;font-family:var(--sans);color:var(--muted)">bits/char</span>
       </div>
-      <div class="g-sub">${H<3?'low — compresses well':H<4?'moderate — typical':'high — information-dense'}</div>
+      <div class="g-sub">${H<3?'low — lots of repetition, easy to compress':H<4?'moderate — typical conversation':'high — dense content, hard to compress'}</div>
+    </div>
+    <div class="g-card ${envColor}">
+      <div class="g-lbl" style="margin-bottom:.3rem">Environmental impact <span style="font-weight:400;text-transform:none;letter-spacing:0">(this session)</span></div>
+      <table class="g-table">
+        <tr><td style="color:var(--muted)">⚡ Energy</td><td>${energyWh} Wh</td></tr>
+        <tr><td style="color:var(--muted)">💧 Water</td><td>${waterMl} mL</td></tr>
+        <tr><td style="color:var(--muted)">🌿 CO₂</td><td>${co2g} g</td></tr>
+      </table>
+      <div class="g-sub" style="margin-top:.25rem">Compressing saves ~${Math.round(semRed)}% of above · Sources: Google 2025, Lin 2025</div>
     </div>
     ${pct >= 25 ? `
-    <div class="g-card ${spdColor}">
-      <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
+    <div class="g-card ${status==='safe'?'c-green':status==='warning'?'c-amber':'c-red'}">
+      <div class="g-lbl" style="margin-bottom:.2rem">Response slowdown <span style="font-weight:400;text-transform:none;letter-spacing:0">(longer = slower)</span></div>
       <div class="lat-bg"><div class="lat-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
-      <div class="g-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing — compress soon':'slow — compress now'}</div>
+      <div class="g-sub">~${mult}× slower than start · ${status==='safe'?'still fast':status==='warning'?'noticeably slower — compress soon':'significantly slow — compress now'}</div>
     </div>` : ''}
     ${modelWarn}`;
 }

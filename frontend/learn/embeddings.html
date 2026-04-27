@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ContextCrunch — Embeddings & Semantic Meaning</title>
+<title>ContextCrunch — Prompt Efficiency</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/style.css">
 <style>
@@ -12,13 +12,20 @@
 .demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .demo-body{padding:1.5rem}
-.sent-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.5rem;box-sizing:border-box}
-.sent-input:focus{border-color:var(--accent)}
-.sim-matrix{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem;margin-top:1rem}
-.sim-matrix th{padding:.5rem .75rem;background:var(--cream);border:1px solid var(--border);font-weight:500;text-align:center;font-size:.72rem}
-.sim-matrix td{padding:.5rem .75rem;border:1px solid var(--border);text-align:center;font-weight:500}
-.redundant-list{margin-top:1rem}
-.redundant-item{background:var(--warn-light);border:1px solid #f0c090;border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem;font-size:.85rem;color:#7a3a10}
+.prompt-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem;box-sizing:border-box}
+.prompt-textarea:focus{border-color:var(--accent)}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center}
+.stat-num{display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem}
+.stat-lbl{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.output-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;overflow:hidden;display:none}
+.output-hdr{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);font-size:.82rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem}
+.output-text{padding:1.25rem;font-size:.9rem;line-height:1.75;color:#333;white-space:pre-wrap}
+.output-footer{padding:.75rem 1.25rem;background:var(--cream);border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+.waste-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.25rem 0}
+.waste-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.waste-tag{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:.35rem}
+.waste-saving{font-family:var(--mono);font-size:.72rem;color:var(--accent);margin-top:.5rem;display:block}
 .cs{margin-bottom:2.5rem}
 .cs h2{font-size:1.5rem;margin-bottom:.75rem}
 .cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
@@ -26,6 +33,7 @@
 .code-block{background:#1a1a1a;color:#e8e8e8;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre}
 .insight-box{background:#f0f8f4;border:1px solid #a8d4be;border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#1a4a35;line-height:1.7}
 .insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:#1a6b4a}
+@media(max-width:600px){.waste-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -33,55 +41,57 @@
 <main>
 <div class="lp">
   <a href="index.html" class="back">← Back to Learn</a>
-  <span class="section-label">Learn · 02</span>
-  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Embeddings &amp; semantic meaning</h1>
-  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">How does AI understand meaning, not just words? Type sentences below and see real cosine similarities computed by the backend using sentence-transformers.</p>
+  <span class="section-label">Learn · 06</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:.5rem">Prompt efficiency</h1>
+  <p style="font-family:var(--mono);font-size:.78rem;color:var(--muted);margin-bottom:1rem">also known as: saying the same thing in fewer words</p>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">Paste any prompt. ContextCrunch rewrites it to say the same thing in fewer tokens — using Groq Llama 3.3 70B and the math of mutual information.</p>
 
   <div class="level-toggle" style="margin-bottom:2rem">
     <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
     <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
   </div>
 
-  <!-- LIVE SIMILARITY DEMO -->
+  <!-- LIVE PROMPT IMPROVER -->
   <div class="demo-box">
     <div class="demo-hdr">
-      <span class="demo-hdr-title">Live similarity matrix — real embeddings from backend</span>
-      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">all-MiniLM-L6-v2 · 384 dimensions</span>
+      <span class="demo-hdr-title">Live prompt efficiency analyzer &amp; compressor</span>
+      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Groq Llama 3.3 70B</span>
     </div>
     <div class="demo-body">
-      <p style="font-size:.85rem;color:#555;margin-bottom:1rem">Enter 2–5 sentences. The backend computes real cosine similarity between all pairs using sentence-transformers.</p>
-      <div id="sent-inputs">
-        <input class="sent-input" placeholder="Sentence 1" value="The cat sat on the mat">
-        <input class="sent-input" placeholder="Sentence 2" value="A cat was resting on the rug">
-        <input class="sent-input" placeholder="Sentence 3" value="Quantum computing uses superposition">
+      <textarea class="prompt-textarea" id="prompt-input" placeholder="Paste any prompt you've been sending to Claude, ChatGPT, or Gemini..."></textarea>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-num" id="p-tokens">0</span><span class="stat-lbl">tokens</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-entropy">—</span><span class="stat-lbl">entropy</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-redundancy">0%</span><span class="stat-lbl">redundancy</span></div>
       </div>
-      <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap">
-        <button class="btn btn-accent" onclick="runEmbeddings()" style="font-size:.85rem;padding:.45rem 1.1rem">Compute similarities →</button>
-        <button class="btn btn-secondary" onclick="addSentence()" style="font-size:.82rem;padding:.45rem .9rem">+ Add sentence</button>
-        <button class="btn btn-secondary" onclick="loadEmbedExample()" style="font-size:.82rem;padding:.45rem .9rem">Load example</button>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn btn-accent" id="compress-btn" onclick="compressPrompt()" disabled style="font-size:.88rem;padding:.6rem 1.25rem">Compress this prompt →</button>
+        <button class="btn btn-secondary" onclick="loadSample()"  style="font-size:.82rem;padding:.6rem 1.1rem">Load sample</button>
+        <button class="btn btn-secondary" onclick="loadSample2()" style="font-size:.82rem;padding:.6rem 1.1rem">Another sample</button>
       </div>
-      <div id="emb-result" style="margin-top:1.5rem"></div>
+      <div id="prompt-loading" style="display:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:1rem">Rewriting with Groq Llama 3.3 70B...</div>
+      <div class="output-box" id="prompt-output">
+        <div class="output-hdr">
+          <span>Compressed prompt — ready to paste</span>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <span style="background:var(--accent-light);color:var(--accent);font-size:.72rem;padding:.2rem .6rem;border-radius:100px;font-family:var(--mono)" id="saved-badge"></span>
+            <button onclick="copyOutput()" style="background:var(--black);color:var(--white);border:none;padding:.35rem .85rem;border-radius:5px;font-size:.78rem;cursor:pointer;font-family:var(--mono)">Copy →</button>
+          </div>
+        </div>
+        <div class="output-text" id="output-text"></div>
+        <div class="output-footer" id="output-changes"></div>
+      </div>
     </div>
   </div>
 
-  <!-- INSTANT CLIENT-SIDE SIMILARITY -->
-  <div class="demo-box">
-    <div class="demo-hdr">
-      <span class="demo-hdr-title">Quick word-overlap similarity — instant</span>
-      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Client-side, no backend needed</span>
-    </div>
-    <div class="demo-body">
-      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.5rem;box-sizing:border-box" id="sim-a" placeholder="First sentence" oninput="quickSim()">
-      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:1rem;box-sizing:border-box" id="sim-b" placeholder="Second sentence" oninput="quickSim()">
-      <div id="quick-sim-result" style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem;display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
-          <span style="font-family:var(--mono);font-size:.72rem;color:var(--muted);text-transform:uppercase">Word overlap similarity</span>
-          <span style="font-family:var(--serif);font-size:1.5rem" id="quick-score">—</span>
-        </div>
-        <div style="background:var(--mid);border-radius:4px;height:8px;overflow:hidden;margin-bottom:.5rem"><div id="quick-bar" style="height:100%;border-radius:4px;transition:width .4s,background .4s;background:var(--accent);width:0%"></div></div>
-        <div style="font-size:.82rem;color:#555;font-style:italic" id="quick-interp"></div>
-        <div style="font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:.5rem">Note: real cosine similarity on 384-dim embeddings from the backend above is more accurate than word overlap.</div>
-      </div>
+  <!-- COMMON WASTE PATTERNS -->
+  <div class="cs">
+    <h2>Common token waste patterns</h2>
+    <div class="waste-grid">
+      <div class="waste-card"><span class="waste-tag">Polite filler</span><div style="font-size:.85rem;color:#333;line-height:1.5">"I was hoping you could please help me understand and explain in detail..."</div><span class="waste-saving">→ "Explain..." saves ~12 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Redundant context</span><div style="font-size:.85rem;color:#333;line-height:1.5">"As we discussed, as I mentioned, as you know, as I said before..."</div><span class="waste-saving">→ Remove entirely, saves ~15 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Over-specification</span><div style="font-size:.85rem;color:#333;line-height:1.5">"...that is helpful and informative and useful and relevant and accurate..."</div><span class="waste-saving">→ Implied, saves ~18 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Restating the obvious</span><div style="font-size:.85rem;color:#333;line-height:1.5">"I am a human user asking you, an AI assistant, to help me with..."</div><span class="waste-saving">→ The model knows, saves ~20 tokens</span></div>
     </div>
   </div>
 
@@ -94,149 +104,117 @@
 <script src="../js/api.js"></script>
 <script src="../js/learn-base.js"></script>
 <script>
-const EMB_EXAMPLES=[
-  ['The cat sat on the mat','A cat was resting on the rug','Quantum computing uses superposition','Machine learning requires large datasets'],
-  ['ContextCrunch compresses AI conversations','We reduce token usage in chat sessions','The weather is sunny today','Neural networks learn from data'],
-];
-let embExIdx=0;
+const S1="I was hoping that you could please help me understand and explain in detail the concept of machine learning and could you also please provide some examples of how it is used in various real world applications today and maybe also could you touch on the history of how it developed over time as well as the future directions it might take going forward if possible thank you so much";
+const S2="I would like to kindly request that you take a look at my code and help me understand what might be going wrong with it and also if you could suggest any improvements or optimizations that might make it run faster or use less memory that would be really helpful and appreciated";
 
-function addSentence(){
-  const div=document.getElementById('sent-inputs');
-  if(div.children.length>=5) return;
-  const inp=document.createElement('input');
-  inp.className='sent-input';
-  inp.placeholder=`Sentence ${div.children.length+1}`;
-  div.appendChild(inp);
+function loadSample(){ document.getElementById('prompt-input').value=S1; analyzePrompt(); }
+function loadSample2(){ document.getElementById('prompt-input').value=S2; analyzePrompt(); }
+
+function analyzePrompt(){
+  const text=document.getElementById('prompt-input').value;
+  const tokens=TC.estimate(text);
+  const entropy=TC.entropy(text);
+  const red=TC.redundancy(text);
+  document.getElementById('p-tokens').textContent=tokens.toLocaleString();
+  document.getElementById('p-entropy').textContent=entropy;
+  document.getElementById('p-redundancy').textContent=red+'%';
+  document.getElementById('compress-btn').disabled=tokens<5;
+  document.getElementById('prompt-output').style.display='none';
 }
 
-function loadEmbedExample(){
-  const ex=EMB_EXAMPLES[embExIdx++%EMB_EXAMPLES.length];
-  const inputs=document.getElementById('sent-inputs');
-  while(inputs.children.length<ex.length){const inp=document.createElement('input');inp.className='sent-input';inputs.appendChild(inp);}
-  while(inputs.children.length>ex.length)inputs.removeChild(inputs.lastChild);
-  ex.forEach((s,i)=>inputs.children[i].value=s);
-  runEmbeddings();
-}
+let deb;
+document.getElementById('prompt-input').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(analyzePrompt,200);});
 
-async function runEmbeddings(){
-  const sentences=[...document.querySelectorAll('#sent-inputs .sent-input')].map(i=>i.value.trim()).filter(s=>s.length>3);
-  if(sentences.length<2){alert('Enter at least 2 sentences');return;}
-  demoLoading('emb-result','Computing real embeddings (all-MiniLM-L6-v2)');
+async function compressPrompt(){
+  const text=document.getElementById('prompt-input').value.trim();
+  if(!text) return;
+  document.getElementById('prompt-loading').style.display='block';
+  document.getElementById('compress-btn').disabled=true;
+  document.getElementById('prompt-output').style.display='none';
   try{
-    const r=await API.demoEmbeddings(sentences);
-    let html=`<div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.08em">Cosine similarity matrix (real embeddings)</div>`;
-    html+=`<table class="sim-matrix"><tr><th></th>${sentences.map((_,i)=>`<th>S${i+1}</th>`).join('')}</tr>`;
-    for(let i=0;i<sentences.length;i++){
-      html+=`<tr><th>S${i+1}</th>`;
-      for(let j=0;j<sentences.length;j++){
-        const sim=r.similarities[i][j];
-        const bg=i===j?'var(--cream)':sim>0.82?'#fdf0f0':sim>0.72?'#fdf0e8':sim>0.5?'#f0f8f4':'var(--white)';
-        const color=i===j?'var(--muted)':sim>0.82?'var(--danger)':sim>0.72?'var(--warn)':sim>0.5?'var(--accent)':'var(--black)';
-        html+=`<td style="background:${bg};color:${color}">${sim.toFixed(3)}</td>`;
-      }
-      html+='</tr>';
-    }
-    html+='</table>';
-    html+=`<div style="margin-top:1rem">${sentences.map((s,i)=>`<div style="font-size:.82rem;color:#555;padding:.3rem 0"><span style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">S${i+1}:</span> ${s}</div>`).join('')}</div>`;
-    if(r.redundant_pairs.length>0){
-      html+=`<div class="redundant-list"><div style="font-family:var(--mono);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Redundant pairs (similarity &gt; 0.72)</div>`;
-      html+=r.redundant_pairs.map(p=>`<div class="redundant-item">S${p.i+1} ↔ S${p.j+1} · similarity ${p.similarity.toFixed(3)} · <strong>one of these can be removed without losing meaning</strong></div>`).join('');
-      html+='</div>';
-    }else{
-      html+=`<div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.85rem;color:var(--accent)">No redundant pairs detected — all sentences carry unique information.</div>`;
-    }
-    html+=`<div style="margin-top:1rem;font-size:.78rem;color:var(--muted);font-family:var(--mono)">Embedding dimension: ${r.embedding_dim} · First 10 values of S1: [${r.embedding_sample.map(v=>v.toFixed(3)).join(', ')}...]</div>`;
-    document.getElementById('emb-result').innerHTML=html;
-  }catch(e){ demoError('emb-result','Backend unavailable: '+e.message); }
+    const r=await API.improvePrompt(text,'claude','plus');
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent=r.compressed;
+    document.getElementById('saved-badge').textContent=`${r.original_tokens}→${r.compressed_tokens} tokens · saved ${r.tokens_saved}`;
+    document.getElementById('output-changes').textContent=r.changes.length?'Changes: '+r.changes.join(' · '):'Prompt compressed.';
+    document.getElementById('p-tokens').textContent=r.compressed_tokens.toLocaleString();
+  }catch(e){
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent='Backend unavailable: '+e.message;
+  }finally{
+    document.getElementById('prompt-loading').style.display='none';
+    document.getElementById('compress-btn').disabled=false;
+  }
 }
 
-function quickSim(){
-  const a=document.getElementById('sim-a').value.trim();
-  const b=document.getElementById('sim-b').value.trim();
-  if(!a||!b){document.getElementById('quick-sim-result').style.display='none';return;}
-  const wA=new Set(a.toLowerCase().split(/\s+/).filter(w=>w.length>3));
-  const wB=new Set(b.toLowerCase().split(/\s+/).filter(w=>w.length>3));
-  const inter=[...wA].filter(w=>wB.has(w));
-  const union=new Set([...wA,...wB]);
-  const sim=union.size>0?Math.round(inter.length/union.size*100):0;
-  document.getElementById('quick-sim-result').style.display='block';
-  document.getElementById('quick-score').textContent=sim+'%';
-  document.getElementById('quick-bar').style.width=sim+'%';
-  document.getElementById('quick-bar').style.background=sim>60?'var(--danger)':sim>30?'var(--warn)':'var(--accent)';
-  document.getElementById('quick-interp').textContent=sim>70?'Very similar — ContextCrunch would flag one as redundant':sim>40?'Moderately similar — may overlap in meaning':sim>15?'Some overlap — mostly unique':'Low similarity — unique information';
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output-text').textContent);
+  event.target.textContent='✓ Copied';
+  setTimeout(()=>event.target.textContent='Copy →',2000);
 }
 
 const levels = {
   simple: `
     <div class="cs">
-      <h2>What is an embedding?</h2>
-      <p>An embedding turns a sentence into a list of 384 numbers. Think of it as GPS coordinates — but instead of latitude and longitude in physical space, it's a coordinate in "meaning space". Sentences with similar meanings end up at nearby coordinates, even if they use completely different words.</p>
-      <p>"The cat sat on the mat" and "A cat was resting on the rug" end up very close together in this 384-dimensional space. "Quantum computing uses superposition" ends up far away — different topic, different region of meaning space entirely.</p>
+      <h2>Why does prompt wording affect your session limit?</h2>
+      <p>Every word you type costs tokens. Every token in your prompt gets re-read by the model on every single response. So inefficient prompts don't just cost more per query — they fill your context window faster, which means your session degrades sooner and you hit limits more quickly.</p>
+      <p>Most people use 2–3× more tokens than necessary when prompting AI. Not because they're writing badly — because natural language is full of politeness and hedging that feels right to us but carries zero information for the model. "I was hoping you could please help me understand..." and "Explain..." produce the same output. The first uses 14 tokens. The second uses 1.</p>
       <div class="insight-box">
-        <strong>Why 384 dimensions?</strong>
-        One or two dimensions can't capture the full complexity of meaning. The model uses 384 numbers because meaning has hundreds of independent axes — formality, topic, sentiment, specificity, technical level, and many more. Each dimension captures a different aspect. The similarity calculation considers all 384 at once.
+        <strong>What ContextCrunch looks for</strong>
+        Filler openers ("I'd be happy to", "Of course!", "Certainly") — zero information content, always removable.<br><br>
+        Repeated context — if you said something three messages ago, the model already has it. Saying it again wastes tokens without adding anything the model doesn't know.<br><br>
+        Over-specification — "helpful and useful and informative and accurate" is four tokens saying what one word ("helpful") already implies.
       </div>
-      <h2>How ContextCrunch uses this</h2>
-      <p>ContextCrunch embeds every sentence in your conversation. When two sentences score above 0.88 cosine similarity, they're saying the same thing in different words — and one can be removed without any meaning loss. This catches paraphrased repetition that simple word-matching completely misses.</p>
-      <p>The threshold of 0.88 was chosen carefully. At 0.85, some sentences that add a specific constraint ("How do I install Python on Windows?" vs "How do I install Python?") would be incorrectly flagged as redundant. At 0.88, only genuinely near-identical meaning triggers removal.</p>
+      <h2>What a good prompt looks like</h2>
+      <p>Precise and direct. "Explain machine learning: concept, real-world uses, brief history" says everything that "Could you please help me understand and explain in detail the concept of machine learning and could you also provide examples..." says — in about 60% fewer tokens. The quality of the response is identical. The cost to your session limit is not.</p>
     </div>`,
   technical: `
     <div class="cs">
-      <h2>Sentence embeddings with SBERT (all-MiniLM-L6-v2)</h2>
-      <p>ContextCrunch uses all-MiniLM-L6-v2, a distilled version of BERT trained with a Siamese network structure specifically for semantic similarity tasks. It maps each sentence to a 384-dimensional unit-normalized vector, where cosine similarity between vectors correlates with human judgments of sentence similarity.</p>
-      <div class="formula">Embedding: embed(s) → v ∈ ℝ³⁸⁴  (unit normalized: ‖v‖ = 1)
+      <h2>Mutual information and prompt redundancy</h2>
+      <p>The formal measure of how much information sentence B adds given sentence A is mutual information: I(A;B) = H(A) + H(B) - H(A,B). When I(A;B) is high, the two sentences convey the same information — one is redundant. ContextCrunch uses this as the theoretical basis for deciding what to remove.</p>
+      <div class="formula">Mutual Information:
+  I(A;B) = H(A) + H(B) - H(A,B)
 
-Cosine similarity:
-  sim(A, B) = (A · B) / (‖A‖ · ‖B‖)
+Where:
+  H(A)    = entropy of sentence A alone
+  H(B)    = entropy of sentence B alone
+  H(A,B)  = joint entropy of A and B together
+  I(A;B)  = bits of information A and B share
 
-Since vectors are unit-normalized:
-  sim(A, B) = A · B  (simple dot product)
-  Range: [-1, 1]  (in practice: [0, 1] for sentence pairs)
+When I(A;B) ≈ H(A): B contains everything A does → A is removable
+When I(A;B) ≈ 0:    A and B are independent → both carry unique info
 
-ContextCrunch thresholds:
-  sim > 0.88  → semantically redundant (stage 1 dedup)
-  sim > 0.72  → flagged in learn page matrix
-  sim > 0.50  → related but distinct
+Common patterns and their MI:
+  "please" added to any request:        I ≈ 0 bits (no output change)
+  "as I mentioned earlier" restatement: I ≈ H(A) bits (fully redundant)
+  New constraint added to prompt:       I < H(A) bits (keep it)</div>
+      <p>The practical implementation doesn't compute MI directly — it uses semantic similarity as a proxy. High cosine similarity between sentence embeddings correlates with high mutual information. But the MI framing is why the threshold is set at 0.85 for prompt compression (lower than the 0.88 used for conversation compression) — prompts need to be more aggressively compressed since every token costs twice: once in the prompt, once when the model re-reads context.</p>
+      <div class="code-block">from contextcrunch.llm_engine import _remove_semantic_redundancy, _groq
+from contextcrunch.llm_engine import PROMPT_IMPROVEMENT_SYSTEM
 
-Redundancy detection: O(n²) over sentence pairs
-  For 50 sentences: 1,225 comparisons → ~50ms
-  For 200 sentences: 19,900 comparisons → ~200ms</div>
-      <p>The model runs locally via sentence-transformers, with weights loaded once and cached in memory. No API call is made for embeddings — this is why the compression pipeline works even when Groq and Gemini are unavailable.</p>
-      <div class="code-block">from sentence_transformers import SentenceTransformer
-import numpy as np
+def improve_prompt(prompt_text: str) -> dict:
+    """
+    Stage 1: semantic dedup on prompts >50 words.
+    Removes sentences with cosine sim >0.85 to prior sentences.
+    Lower threshold than conversation (0.88) — prompts need tighter compression.
+    """
+    input_text = prompt_text
+    if len(prompt_text.split()) > 50:
+        input_text = _remove_semantic_redundancy(prompt_text, threshold=0.85)
 
-# Model is 22MB, loads in ~1s, cached after first call
-model = SentenceTransformer("all-MiniLM-L6-v2")
+    # Stage 2: Groq Llama 3.3 70B rewrite
+    # temperature=0.05 → near-deterministic output, consistent compression
+    messages = [
+        {"role": "system", "content": PROMPT_IMPROVEMENT_SYSTEM},
+        {"role": "user",   "content": f"Rewrite to use fewer tokens:\\n\\n{input_text}"}
+    ]
+    result = _groq(messages, temperature=0.05, max_tokens=800)
 
-sentences = [
-    "The cat sat on the mat",       # S1
-    "A cat was resting on the rug", # S2 — similar to S1
-    "Quantum computing uses superposition",  # S3 — unrelated
-]
-
-# normalize_embeddings=True → unit vectors → dot product = cosine sim
-embeddings = model.encode(sentences, normalize_embeddings=True)
-
-# Pairwise similarities
-sim_S1_S2 = np.dot(embeddings[0], embeddings[1])  # ~0.85 — redundant
-sim_S1_S3 = np.dot(embeddings[0], embeddings[2])  # ~0.10 — unique
-sim_S2_S3 = np.dot(embeddings[1], embeddings[2])  # ~0.08 — unique
-
-print(f"S1 ↔ S2: {sim_S1_S2:.3f} — {'REDUNDANT' if sim_S1_S2 > 0.88 else 'unique'}")
-print(f"S1 ↔ S3: {sim_S1_S3:.3f} — unique")
-
-# O(n²) redundancy detection
-def find_redundant(sentences, threshold=0.88):
-    embs = model.encode(sentences, normalize_embeddings=True)
-    redundant = set()
-    for i in range(len(embs)):
-        for j in range(i+1, len(embs)):
-            if j not in redundant:
-                if np.dot(embs[i], embs[j]) > threshold:
-                    redundant.add(j)  # keep first occurrence, remove later
-    return redundant</div>
-      <h2>Why cosine similarity, not Euclidean distance?</h2>
-      <p>Cosine similarity measures the angle between two vectors, ignoring their magnitude. This matters because sentence length affects vector magnitude — a long detailed sentence and a short punchy sentence conveying the same idea would have different magnitudes, making Euclidean distance a poor similarity measure. Cosine similarity is length-agnostic: it only cares about direction in meaning space, which is what we actually want.</p>
+    # Structured output: parses COMPRESSED: and CHANGES: labels
+    # Falls back to full result if model ignores the format
+    ...</div>
+      <h2>Why temperature=0.05 for prompt compression?</h2>
+      <p>Near-zero temperature makes the LLM output near-deterministic. The same prompt should always compress to the same output — variance would make the tool unpredictable for users iterating on their prompts. For compression tasks, we want consistency over creativity. For the conversation explanation endpoint (<code>/explain</code>), we use temperature=0.3 because generating educational text benefits from some variation.</p>
     </div>`,
 };
 setLevel('simple', document.querySelector('.level-btn'), levels);

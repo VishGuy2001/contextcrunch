@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ContextCrunch — Attention & Latency</title>
+<title>ContextCrunch — Entropy & Information Theory</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/style.css">
 <style>
@@ -12,12 +12,16 @@
 .demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .demo-body{padding:1.5rem}
-.slider-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
-.slider-label{font-family:var(--mono);font-size:.78rem;color:var(--muted);min-width:150px}
-.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem}
-.cost-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center}
-.cost-num{font-family:var(--serif);font-size:1.6rem;display:block;margin-bottom:.2rem}
-.cost-lbl{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.demo-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem;box-sizing:border-box}
+.demo-textarea:focus{border-color:var(--accent)}
+.entropy-big{font-family:var(--serif);font-size:3rem;line-height:1}
+.scale-track{background:linear-gradient(to right,#e8f4ef,#fdf0e8,#fdf0f0);height:12px;border-radius:6px;position:relative;margin:.5rem 0}
+.scale-marker{position:absolute;top:-4px;width:4px;height:20px;background:var(--black);border-radius:2px;transform:translateX(-50%);transition:left .3s}
+.char-bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.char-label{font-family:var(--mono);font-size:.72rem;color:var(--black);min-width:24px;text-align:center}
+.char-bar-bg{flex:1;background:var(--mid);border-radius:3px;height:8px;overflow:hidden}
+.char-bar-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.char-pct{font-family:var(--mono);font-size:.68rem;color:var(--muted);min-width:40px;text-align:right}
 .cs{margin-bottom:2.5rem}
 .cs h2{font-size:1.5rem;margin-bottom:.75rem}
 .cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
@@ -32,56 +36,48 @@
 <main>
 <div class="lp">
   <a href="index.html" class="back">← Back to Learn</a>
-  <span class="section-label">Learn · 05</span>
-  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Attention &amp; latency</h1>
-  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">Why does longer context make AI slower? Self-attention scales as O(n²) — double your tokens and you quadruple the compute. Use the slider to feel the math.</p>
+  <span class="section-label">Learn · 03</span>
+  <h1 style="font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin-bottom:.5rem">Entropy &amp; information theory</h1>
+  <p style="font-family:var(--mono);font-size:.78rem;color:var(--muted);margin-bottom:1rem">also known as: how we measure information vs noise</p>
+  <p style="font-size:1.05rem;color:#555;line-height:1.75;margin-bottom:2rem;max-width:620px">How do we measure information vs noise? Shannon entropy is the mathematical core of ContextCrunch's waste detection. Paste any text and see real entropy calculated by the backend.</p>
 
   <div class="level-toggle" style="margin-bottom:2rem">
     <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
     <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
   </div>
 
-  <!-- LIVE O(n²) CALCULATOR -->
+  <!-- LIVE ENTROPY DEMO -->
   <div class="demo-box">
     <div class="demo-hdr">
-      <span class="demo-hdr-title">O(n²) latency calculator — instant</span>
-      <span id="zone-badge" style="font-family:var(--mono);font-size:.78rem;color:var(--accent)">safe zone</span>
+      <span class="demo-hdr-title">Live entropy calculator — real backend</span>
+      <span id="ent-status" style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Paste text to measure</span>
     </div>
     <div class="demo-body">
-      <div class="slider-row">
-        <label class="slider-label">Tokens in context</label>
-        <input type="range" id="tok-slider" min="1000" max="200000" step="1000" value="20000" oninput="calcAttn()" style="flex:1">
-        <span style="font-family:var(--mono);font-size:.85rem;min-width:80px;text-align:right" id="tok-val">20,000</span>
+      <textarea class="demo-textarea" id="ent-input" placeholder="Paste any text to measure its information density..."></textarea>
+      <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="btn btn-accent" onclick="runEntropy()" style="font-size:.85rem;padding:.45rem 1.1rem">Calculate →</button>
+        <button class="btn btn-secondary" onclick="loadEx('low')"  style="font-size:.82rem;padding:.45rem .9rem">Low entropy</button>
+        <button class="btn btn-secondary" onclick="loadEx('med')"  style="font-size:.82rem;padding:.45rem .9rem">Medium</button>
+        <button class="btn btn-secondary" onclick="loadEx('high')" style="font-size:.82rem;padding:.45rem .9rem">High entropy</button>
+        <button class="btn btn-secondary" onclick="loadEx('red')"  style="font-size:.82rem;padding:.45rem .9rem">Redundant</button>
       </div>
-      <div class="slider-row">
-        <label class="slider-label">Model limit</label>
-        <select id="model-limit" onchange="calcAttn()" style="font-family:var(--mono);font-size:.82rem;padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--white)">
-          <option value="40000">Claude Free (40k)</option>
-          <option value="200000" selected>Claude Plus/Max (200k)</option>
-          <option value="1000000">Claude Pro (1M)</option>
-          <option value="32000">ChatGPT Free (32k)</option>
-          <option value="272000">ChatGPT Plus (272k)</option>
-          <option value="1048576">Gemini Free/Pro (1M)</option>
-        </select>
-        <span style="font-family:var(--mono);font-size:.85rem;min-width:80px;text-align:right" id="pct-val">10%</span>
-      </div>
-      <div style="background:var(--mid);border-radius:6px;height:12px;margin-bottom:1.5rem;overflow:hidden">
-        <div id="fill-bar" style="height:100%;border-radius:6px;background:var(--accent);transition:width .3s,background .3s;width:10%"></div>
-      </div>
-      <div class="cost-grid">
-        <div class="cost-card"><span class="cost-num" id="mult-val">0.04×</span><span class="cost-lbl">attention cost vs baseline</span></div>
-        <div class="cost-card"><span class="cost-num" id="pct-display">10%</span><span class="cost-lbl">context window used</span></div>
-        <div class="cost-card"><span class="cost-num" id="zone-val" style="color:var(--accent)">Fast</span><span class="cost-lbl">response speed zone</span></div>
-      </div>
-      <div style="font-size:.82rem;color:#555;margin-top:1rem;font-family:var(--mono);line-height:1.6" id="attn-msg"></div>
-      <div style="margin-top:1.25rem;padding:1rem;background:var(--white);border:1px solid var(--border);border-radius:8px">
-        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">ContextCrunch compression benefit</div>
-        <div class="slider-row" style="margin-bottom:.5rem">
-          <label class="slider-label">Compression ratio</label>
-          <input type="range" id="comp-slider" min="0" max="60" step="5" value="30" oninput="calcAttn()" style="flex:1">
-          <span style="font-family:var(--mono);font-size:.85rem;min-width:60px;text-align:right" id="comp-val">30%</span>
+      <div style="display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem">
+        <div>
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Shannon entropy</div>
+          <div class="entropy-big" id="ent-val">—</div>
+          <div style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">bits/character</div>
         </div>
-        <div style="font-family:var(--mono);font-size:.82rem;color:var(--accent)" id="speedup-msg"></div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem">Density scale</div>
+          <div class="scale-track"><div class="scale-marker" id="scale-marker" style="left:50%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:.68rem;font-family:var(--mono);color:var(--muted)"><span>0 repetitive</span><span>3.5 typical</span><span>4.7 max</span></div>
+          <div style="font-size:.85rem;color:#555;margin-top:.5rem;font-style:italic" id="ent-interp">—</div>
+        </div>
+      </div>
+      <div id="char-freq-section" style="display:none">
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Top characters by frequency</div>
+        <div id="char-freq-bars"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem" id="ent-stats-grid"></div>
       </div>
     </div>
   </div>
@@ -95,100 +91,119 @@
 <script src="../js/api.js"></script>
 <script src="../js/learn-base.js"></script>
 <script>
-function calcAttn(){
-  const tokens=parseInt(document.getElementById('tok-slider').value);
-  const limit=parseInt(document.getElementById('model-limit').value);
-  const comp=parseInt(document.getElementById('comp-slider').value);
-  const pct=Math.min(Math.round((tokens/limit)*100),100);
-  const mult=Math.round((pct/50)**2*100)/100;
-  const compPct=(1-(1-comp/100)**2)*100;
-  document.getElementById('tok-val').textContent=tokens.toLocaleString();
-  document.getElementById('pct-val').textContent=pct+'%';
-  document.getElementById('pct-display').textContent=pct+'%';
-  document.getElementById('mult-val').textContent=mult+'×';
-  document.getElementById('comp-val').textContent=comp+'%';
-  document.getElementById('speedup-msg').textContent=comp>0?`At ${comp}% compression: responses ~${Math.round(1/(1-comp/100)**2*10)/10}× faster. O(n²) means ${comp}% token reduction → ${Math.round(compPct)}% compute reduction.`:'No compression applied.';
-  const fillBar=document.getElementById('fill-bar');
-  fillBar.style.width=pct+'%';
-  let zone,color,msg;
-  if(pct<40){zone='Fast';color='var(--accent)';msg=`At ${pct}% fill — responses at optimal speed (${mult}× baseline).`;}
-  else if(pct<70){zone='Slowing';color='var(--warn)';msg=`At ${pct}% fill — responses ~${mult}× slower than conversation start.`;}
-  else{zone='Slow';color='var(--danger)';msg=`At ${pct}% fill — responses ~${mult}× slower. Compression strongly recommended.`;}
-  fillBar.style.background=color;
-  document.getElementById('zone-val').textContent=zone;
-  document.getElementById('zone-val').style.color=color;
-  document.getElementById('zone-badge').textContent=pct<40?'safe zone':pct<70?'warning zone':'danger zone';
-  document.getElementById('zone-badge').style.color=color;
-  document.getElementById('attn-msg').textContent=msg;
-  document.getElementById('pct-val').style.color=color;
+const EX = {
+  low:  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  med:  'The transformer model processes your conversation by reading every token from the beginning of the context window before generating each response.',
+  high: 'def attention(Q,K,V,d):import numpy as np;return np.softmax(Q@K.T/np.sqrt(d))@V',
+  red:  'As I mentioned earlier, as I said before, to reiterate what I said, as previously noted, let me repeat what I already told you, as I mentioned above.'
+};
+function loadEx(k){ document.getElementById('ent-input').value=EX[k]; updateLive(); }
+
+function updateLive(){
+  const text=document.getElementById('ent-input').value;
+  if(!text){ document.getElementById('ent-val').textContent='—'; document.getElementById('ent-interp').textContent='—'; document.getElementById('scale-marker').style.left='50%'; return; }
+  const H=TC.entropy(text);
+  document.getElementById('ent-val').textContent=H.toFixed(3);
+  document.getElementById('scale-marker').style.left=Math.min(H/4.7*100,100)+'%';
+  const interp=H<2?'Very low — highly compressible':H<3?'Low — redundant content':H<3.8?'Moderate — typical conversation':H<4.3?'High — dense information':'Very high — code or structured data';
+  document.getElementById('ent-interp').textContent=interp;
+  document.getElementById('ent-status').textContent=text.length.toLocaleString()+' chars · H = '+H.toFixed(3)+' bits/char';
 }
-calcAttn();
+
+async function runEntropy(){
+  const text=document.getElementById('ent-input').value.trim();
+  if(!text) return;
+  updateLive();
+  demoLoading('char-freq-bars','');
+  document.getElementById('char-freq-section').style.display='block';
+  try{
+    const r=await API.demoEntropy(text);
+    document.getElementById('ent-val').textContent=r.entropy.toFixed(3);
+    document.getElementById('scale-marker').style.left=Math.min(r.entropy/4.7*100,100)+'%';
+    document.getElementById('ent-interp').textContent=r.interpretation;
+    document.getElementById('ent-status').textContent=r.char_count.toLocaleString()+' chars · '+r.unique_chars+' unique · H = '+r.entropy.toFixed(3);
+    const maxCount=Math.max(...r.top_chars.map(c=>c.count));
+    document.getElementById('char-freq-bars').innerHTML=r.top_chars.map(c=>`
+      <div class="char-bar-row">
+        <span class="char-label">${c.char===' '?'·':c.char}</span>
+        <div class="char-bar-bg"><div class="char-bar-fill" style="width:${Math.round(c.count/maxCount*100)}%"></div></div>
+        <span class="char-pct">${(c.prob*100).toFixed(1)}%</span>
+      </div>`).join('');
+    document.getElementById('ent-stats-grid').innerHTML=`
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.entropy.toFixed(3)}</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">bits/char</span></div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.compression_bound.bound}%</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">max lossless compression</span></div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center"><span style="display:block;font-family:var(--serif);font-size:1.4rem;margin-bottom:.2rem">${r.unique_chars}</span><span style="font-size:.72rem;color:var(--muted);font-family:var(--mono)">unique characters</span></div>`;
+  }catch(e){
+    document.getElementById('char-freq-bars').innerHTML=`<p style="font-size:.82rem;color:var(--muted);font-family:var(--mono)">Backend unavailable — showing client estimate</p>`;
+  }
+}
+
+let deb;
+document.getElementById('ent-input').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(updateLive,200);});
 
 const levels = {
   simple: `
     <div class="cs">
-      <h2>Why does a longer conversation make responses slower?</h2>
-      <p>Before the AI answers your latest message, it re-reads your entire conversation — every single message, every response, from the very beginning. It doesn't just pick up where it left off. This re-reading step is where the slowdown comes from.</p>
-      <p>The cost of this re-reading is <em>quadratic</em>, not linear. That means doubling your conversation length doesn't double the work — it quadruples it. Triple the length, nine times the work. This is the O(n²) problem.</p>
+      <h2>What is entropy, in plain terms?</h2>
+      <p>Entropy measures surprise. If every character in a text is the same — "aaaaaaa" — there's zero surprise, zero information, zero entropy. If text is completely random — no patterns, no repetition — every character is maximally surprising, so entropy is at its peak.</p>
+      <p>Real AI conversations sit in between. Typical English prose scores around 3.5–4.0 bits per character. Code scores higher (4.0–4.5) because variable names and syntax are harder to predict. Filler phrases like "I'd be happy to help you with that today" score very low — they're predictable, pattern-heavy, and compress well.</p>
       <div class="insight-box">
-        <strong>A concrete example</strong>
-        Start of session (2,000 tokens): the model computes ~4 million token pair relationships before responding.<br><br>
-        Mid session (20,000 tokens): ~400 million pairs — 100× more work for 10× more tokens.<br><br>
-        Late session (100,000 tokens): ~10 billion pairs. This is why responses feel sluggish at 60%+ fill even when you still have headroom left.
+        <strong>The intuition in one sentence</strong>
+        Low entropy = predictable = compressible. High entropy = unpredictable = hard to compress. When ContextCrunch flags your conversation as compressible, it's saying: there are patterns and repetitions in here that carry less information than their token count suggests.
       </div>
-      <h2>Why compression helps more than you'd expect</h2>
-      <p>A 30% token reduction sounds modest. But because the cost is quadratic, reducing tokens by 30% actually reduces compute by 51% — because (0.7)² = 0.49. That's the speedup shown in the calculator above. The quadratic relationship means compression benefits compound: small reductions in tokens produce outsized reductions in latency.</p>
+      <h2>What the numbers mean</h2>
+      <p><strong>H &lt; 2.5</strong> — Very low. Heavily repetitive. Things like "as I said, as I mentioned, to reiterate" repeated across a conversation. Strong compression target.</p>
+      <p><strong>H ≈ 3.5</strong> — Typical English conversation. Normal mix of content and filler. Some compression possible.</p>
+      <p><strong>H &gt; 4.0</strong> — Dense. Code, technical specifications, structured data. Limited compression without meaning loss.</p>
+      <p>The lossless compression bound shown in the calculator tells you the theoretical maximum compression ratio based purely on the character distribution — before any semantic analysis.</p>
     </div>`,
   technical: `
     <div class="cs">
-      <h2>Self-attention is O(n²) — here's exactly why</h2>
-      <p>The attention mechanism computes a weighted combination of all token values, where the weights come from comparing every token against every other token. For n tokens, that's n² comparisons — one for each pair. This is not an implementation choice. It's fundamental to how attention works.</p>
-      <div class="formula">Attention(Q, K, V) = softmax(QKᵀ / √d_k) · V
+      <h2>H(X) = −Σ p(x) log₂ p(x)</h2>
+      <p>Shannon entropy measures the average number of bits needed to encode one symbol from a source, given the optimal encoding. It's the fundamental lower bound on lossless compression — no algorithm can compress below H(X) bits per symbol on average.</p>
+      <div class="formula">H(X) = -Σ p(x) · log₂(p(x))   over the character distribution
 
 Where:
-  Q ∈ ℝⁿˣᵈ  — query matrix  (each token asking a question)
-  K ∈ ℝⁿˣᵈ  — key matrix    (each token providing an answer)
-  V ∈ ℝⁿˣᵈ  — value matrix  (the actual content to retrieve)
-  d_k        — key dimension (scaling to prevent vanishing gradients)
+  p(x) = probability of character x = count(x) / total_chars
+  log₂  = base-2 logarithm (result in bits)
 
-QKᵀ produces an n×n attention matrix — n² values.
-Each value scores how much token i should attend to token j.
+Bounds:
+  H = 0          all same character ("aaaaaaa")
+  H = log₂|A|   perfectly uniform over alphabet A
+  H ≈ 4.7        max for 26-char alphabet
+  H ≈ 8.0        max for full 256-byte ASCII
 
-Time complexity:  O(n²·d)
-Space complexity: O(n²)
+English text:    H ≈ 3.5–4.0 bits/char
+After lossless:  H ≈ 1.0 bits/char
+Code (Python):   H ≈ 4.0–4.5 bits/char
 
-ContextCrunch latency model (empirical):
-  multiplier = (fill_pct / 50)²
-  At 50% fill = 1× baseline
-  At 75% fill = 2.25× baseline
-  At 100% fill = 4× baseline
+Lossless compression bound:
+  bound = (1 - H / log₂|A|) × 100%
+  At H=3.0, |A|=60: bound ≈ (1 - 3.0/5.9) × 100 = 49%</div>
+      <p>The compression bound gives the theoretical maximum for lossless compression. Semantic compression (what ContextCrunch does) can exceed this because it removes content that carries meaning redundant with other content — not just character-level patterns.</p>
+      <div class="code-block">import math
+from collections import Counter
 
-Compression speedup at ratio ρ:
-  speedup = 1 / (1 - ρ)²
-  ρ = 0.30 → 1/(0.70)² = 2.04× faster
-  ρ = 0.50 → 1/(0.50)² = 4.00× faster</div>
-      <div class="code-block">import numpy as np
+def shannon_entropy(text: str) -> float:
+    """H(X) = -Σ p(x) log₂ p(x) over character distribution."""
+    if not text or len(text) < 2:
+        return 0.0
+    freq  = Counter(text)
+    total = len(text)
+    # Each term: p(x) · log₂(p(x)) — probability × self-information
+    return -sum((c/total) * math.log2(c/total) for c in freq.values())
 
-def attention(Q: np.ndarray, K: np.ndarray, V: np.ndarray) -> np.ndarray:
-    """
-    Scaled dot-product attention. O(n²·d) time, O(n²) space.
-    The n×n matrix QK^T is the bottleneck for long-context inference.
-    """
-    d_k    = Q.shape[-1]
-    scores = (Q @ K.T) / np.sqrt(d_k)       # n×n — n² values computed here
-    exp_s  = np.exp(scores - scores.max(-1, keepdims=True))
-    w      = exp_s / exp_s.sum(-1, keepdims=True)  # softmax
-    return w @ V                                    # weighted sum of values
+def compression_bound(text: str) -> float:
+    """Theoretical max lossless compression as a percentage."""
+    H             = shannon_entropy(text)
+    alphabet_bits = math.log2(max(len(set(text)), 2))
+    return max(0, (1 - H / alphabet_bits) * 100)
 
-# Pair count grows quadratically
-n_10k   = 10_000;  print(f"10k tokens:  {n_10k**2:,} pairs")    # 100,000,000
-n_100k  = 100_000; print(f"100k tokens: {n_100k**2:,} pairs")   # 10,000,000,000
-
-# FlashAttention note: reduces memory O(n²) → O(n) via tiling,
-# but time complexity remains O(n²) — same number of operations,
-# just fewer memory reads. Latency improves in practice but scaling holds.</div>
-      <h2>KV cache and why it doesn't fully solve this</h2>
-      <p>KV caching stores the computed key and value matrices between tokens so they don't need to be recomputed on each forward pass. This helps significantly — but the cache grows linearly with context length, consuming memory. And crucially, the attention computation over the full cached KV still requires attending to all n previous positions. The quadratic scaling of attention scores persists even with caching.</p>
+print(f"H('aaaaaa')       = {shannon_entropy('aaaaaa'):.3f}")        # 0.000
+print(f"H('hello world')  = {shannon_entropy('hello world'):.3f}")   # ~3.18
+print(f"bound('hello')    = {compression_bound('hello world'):.1f}%") # ~32%</div>
+      <h2>Word-level vs character-level entropy</h2>
+      <p>ContextCrunch computes both. Character entropy catches low-level repetition (same phrases repeated verbatim). Word entropy catches semantic redundancy — where the same idea appears in different words. A sentence like "As I mentioned earlier, as I said before" has moderate character entropy but very low word entropy — the same function words repeat at the word level. This is what ContextCrunch targets for removal.</p>
     </div>`,
 };
 setLevel('simple', document.querySelector('.level-btn'), levels);
