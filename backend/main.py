@@ -169,7 +169,7 @@ def improve_prompt_route(req: PromptRequest, request: Request):
     if len(req.prompt) > MAX_PROMPT_CHARS:
         raise HTTPException(400, f"Prompt too long — max {MAX_PROMPT_CHARS:,} characters")
     original_tokens  = count_tokens(req.prompt, req.model, req.plan)
-    result           = improve_prompt(req.prompt)
+    result           = improve_prompt(req.prompt, req.model, req.plan)
     compressed_tokens = count_tokens(result["compressed"], req.model, req.plan)
     return {
         "original":          req.prompt,
@@ -213,7 +213,7 @@ def explain(req: ExplainRequest, request: Request):
         raise HTTPException(400, "Level must be simple or technical")
     if req.concept and len(req.concept) > 500:
         raise HTTPException(400, "Concept too long — max 500 characters")
-    explanation = generate_explanation(req.concept, req.level, req.user_data)
+    explanation = generate_explanation(req.concept, req.level, req.user_data, "claude", "sonnet")
     return {"concept": req.concept, "level": req.level, "explanation": explanation}
 
 

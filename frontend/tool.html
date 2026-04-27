@@ -6,184 +6,196 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/style.css">
 <style>
-.tool-wrap{max-width:1020px;margin:0 auto;padding:2.5rem 2rem 5rem}
-.tool-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.tool-wrap{max-width:1060px;margin:0 auto;padding:2rem 2rem 5rem}
+.tool-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
 .reset-btn{font-family:var(--mono);font-size:.72rem;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:.3rem .75rem;cursor:pointer;transition:all .15s}
 .reset-btn:hover{border-color:var(--danger);color:var(--danger)}
 
-/* Model / Plan selectors */
-.sel-row{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap}
-.sel-lbl{font-family:var(--mono);font-size:.72rem;color:var(--muted);min-width:50px;text-transform:uppercase;letter-spacing:.06em}
-.model-btns,.plan-btns{display:flex;gap:.4rem;flex-wrap:wrap}
-.mbtn{padding:.4rem 1rem;border-radius:6px;border:1px solid var(--border);background:var(--white);font-family:var(--mono);font-size:.78rem;cursor:pointer;transition:all .15s;color:var(--black)}
-.mbtn:hover{border-color:var(--black)}
-.mbtn.active{background:var(--black);color:var(--white);border-color:var(--black)}
-.pbtn{padding:.3rem .75rem;border-radius:100px;border:1px solid var(--border);background:transparent;font-size:.72rem;cursor:pointer;transition:all .15s;color:var(--muted);font-family:var(--mono)}
-.pbtn:hover{color:var(--black);border-color:var(--black)}
-.pbtn.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
-#tokenizer-note{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.35rem;padding:.25rem .6rem;background:var(--cream);border-radius:4px;display:inline-block}
+/* ── Model selector ── */
+.model-selector{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.model-selector-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.model-card{border:2px solid var(--border);border-radius:10px;padding:.85rem 1rem;cursor:pointer;transition:all .15s;background:var(--white)}
+.model-card:hover{border-color:#ccc}
+.model-card.active{background:var(--black);border-color:var(--black);color:var(--white)}
+.model-card-name{font-family:var(--serif);font-size:1rem;display:block;margin-bottom:.15rem}
+.model-card-note{font-family:var(--mono);font-size:.65rem;opacity:.6}
+.model-card.active .model-card-note{opacity:.7}
+.version-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;padding-top:.85rem;border-top:1px solid var(--border)}
+.version-lbl{font-family:var(--mono);font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-right:.25rem}
+.vbtn{padding:.3rem .85rem;border-radius:6px;border:1px solid var(--border);background:var(--cream);font-family:var(--mono);font-size:.72rem;cursor:pointer;transition:all .15s;color:var(--black);white-space:nowrap}
+.vbtn:hover{border-color:var(--black)}
+.vbtn.active{background:var(--black);color:var(--white);border-color:var(--black)}
+.vbtn.recommended::after{content:'recommended';font-size:.55rem;margin-left:.4rem;opacity:.6;vertical-align:middle}
+.tokenizer-note{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-top:.6rem;padding:.3rem .65rem;background:var(--cream);border-radius:4px;display:inline-block}
 
 /* Behavior note */
-.beh-note{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem;font-size:.82rem;color:#444;line-height:1.6}
-.beh-tag{font-family:var(--mono);font-size:.65rem;color:var(--accent);display:block;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.08em}
+.beh-note{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.7rem 1rem;margin-bottom:1.1rem;font-size:.82rem;color:#444;line-height:1.6}
+.beh-tag{font-family:var(--mono);font-size:.63rem;color:var(--accent);display:block;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.08em}
 
 /* Main grid */
-.tool-grid{display:grid;grid-template-columns:1fr 260px;gap:1.25rem;margin-bottom:1.25rem}
+.tool-grid{display:grid;grid-template-columns:1fr 256px;gap:1.1rem;margin-bottom:1.1rem}
 @media(max-width:768px){.tool-grid{grid-template-columns:1fr}}
 
 /* Input pane */
 .input-pane{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.pane-hdr{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;border-bottom:1px solid var(--border);font-size:.75rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.4rem}
-.token-live{font-family:var(--mono);font-size:.75rem}
+.pane-hdr{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid var(--border);font-size:.72rem;font-family:var(--mono);color:var(--muted)}
+.token-live{font-family:var(--mono);font-size:.72rem}
 .token-live .safe{color:var(--accent)}.token-live .warning{color:var(--warn)}.token-live .danger{color:var(--danger)}
-
-/* Textarea — smaller, cleaner */
-.main-ta{flex:1;min-height:160px;max-height:260px;border:none;padding:1rem;font-family:var(--sans);font-size:.85rem;color:var(--black);background:var(--white);resize:vertical;outline:none;line-height:1.65}
+.main-ta{flex:1;min-height:150px;max-height:240px;border:none;padding:.9rem 1rem;font-family:var(--sans);font-size:.85rem;color:var(--black);background:var(--white);resize:vertical;outline:none;line-height:1.65}
 .main-ta::placeholder{color:var(--muted);font-size:.82rem}
-
-/* File zone */
-.file-zone{border-top:1px dashed var(--border);padding:.75rem 1rem;text-align:center;cursor:pointer;transition:all .2s;font-size:.78rem;color:var(--muted);font-family:var(--mono);background:var(--cream)}
-.file-zone:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-.file-zone.has-file{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
-
-.input-footer{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-top:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.5rem}
-.input-note{font-size:.68rem;font-family:var(--mono);color:var(--muted)}
+.file-zone{border-top:1px dashed var(--border);padding:.65rem 1rem;text-align:center;cursor:pointer;transition:all .2s;font-size:.75rem;color:var(--muted);font-family:var(--mono);background:var(--cream)}
+.file-zone:hover,.file-zone.has-file{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.input-footer{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;border-top:1px solid var(--border);background:var(--cream);flex-wrap:wrap;gap:.4rem}
+.input-note{font-size:.65rem;font-family:var(--mono);color:var(--muted)}
 
 /* Gauges */
-.gauges-pane{display:flex;flex-direction:column;gap:.6rem}
-.gauge-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem}
-.gauge-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
-.gauge-lbl{font-family:var(--mono);font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.gauge-val{font-family:var(--serif);font-size:1.25rem}
+.gauges-pane{display:flex;flex-direction:column;gap:.55rem}
+.gauge-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.8rem}
+.gauge-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem}
+.gauge-lbl{font-family:var(--mono);font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.gauge-val{font-family:var(--serif);font-size:1.2rem}
 .gauge-val.safe{color:var(--accent)}.gauge-val.warning{color:var(--warn)}.gauge-val.danger{color:var(--danger)}
-.gauge-track{background:var(--mid);border-radius:3px;height:5px;overflow:hidden;margin:.35rem 0}
+.gauge-track{background:var(--mid);border-radius:3px;height:4px;overflow:hidden;margin:.3rem 0}
 .gauge-fill{height:100%;border-radius:3px;transition:width .5s ease}
 .gauge-fill.safe{background:var(--accent)}.gauge-fill.warning{background:var(--warn)}.gauge-fill.danger{background:var(--danger)}
-.gauge-sub{font-size:.68rem;color:var(--muted);font-family:var(--mono);line-height:1.4}
-.bkdn-table{width:100%;font-size:.75rem;border-collapse:collapse}
-.bkdn-table td{padding:.25rem 0}
+.gauge-sub{font-size:.65rem;color:var(--muted);font-family:var(--mono);line-height:1.4}
+.bkdn-table{width:100%;font-size:.72rem;border-collapse:collapse}
+.bkdn-table td{padding:.22rem 0}
 .bkdn-table td:last-child{text-align:right;font-family:var(--mono)}
-.latency-bar-bg{background:var(--mid);border-radius:3px;height:5px;margin:.35rem 0;overflow:hidden}
+.latency-bar-bg{background:var(--mid);border-radius:3px;height:4px;margin:.3rem 0;overflow:hidden}
 .latency-bar{height:100%;border-radius:3px;transition:width .6s ease}
-.model-warn{background:#fdf5e8;border:1px solid #f0c090;border-radius:8px;padding:.75rem;display:flex;gap:.6rem}
-.warn-icon{width:18px;height:18px;border-radius:50%;background:var(--warn);color:white;font-size:.65rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
-
-/* File breakdown */
-#file-breakdown-card{border-left:3px solid var(--accent)}
+.model-warn{background:#fdf5e8;border:1px solid #f0c090;border-radius:7px;padding:.65rem;display:flex;gap:.5rem;margin-top:.1rem}
+.warn-icon{width:16px;height:16px;border-radius:50%;background:var(--warn);color:white;font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
 
 /* Output */
-.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:1.25rem}
-.out-hdr{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.1rem;border-bottom:1px solid var(--border);font-size:.78rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem}
-.saved-badge{background:var(--accent-light);color:var(--accent);font-size:.68rem;padding:.2rem .55rem;border-radius:100px;font-family:var(--mono)}
-.copy-btn{background:var(--black);color:var(--white);border:none;padding:.3rem .75rem;border-radius:5px;font-size:.72rem;cursor:pointer;font-family:var(--mono);transition:background .15s}
+.out-box{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;overflow:hidden;margin-bottom:1.1rem}
+.out-hdr{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;border-bottom:1px solid var(--border);font-size:.75rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.4rem}
+.saved-badge{background:var(--accent-light);color:var(--accent);font-size:.65rem;padding:.15rem .5rem;border-radius:100px;font-family:var(--mono)}
+.copy-btn{background:var(--black);color:var(--white);border:none;padding:.28rem .7rem;border-radius:5px;font-size:.7rem;cursor:pointer;font-family:var(--mono);transition:background .15s}
 .copy-btn:hover{background:var(--accent)}
-.out-text{padding:1.1rem;font-size:.82rem;line-height:1.75;color:#333;white-space:pre-wrap;max-height:260px;overflow-y:auto}
-.out-note{padding:.6rem 1.1rem;font-size:.68rem;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);background:var(--cream)}
+.out-text{padding:1rem;font-size:.82rem;line-height:1.75;color:#333;white-space:pre-wrap;max-height:240px;overflow-y:auto}
+.out-note{padding:.55rem 1.1rem;font-size:.65rem;color:var(--muted);font-family:var(--mono);border-top:1px solid var(--border);background:var(--cream)}
 
-/* Math section */
-.math-section{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.25rem}
-.math-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.75rem}
-.math-area{padding:1.25rem}
-.math-card{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1.1rem;margin-bottom:.85rem}
+/* Math */
+.math-section{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.1rem}
+.math-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.75rem}
+.math-area{padding:1.1rem}
+.math-card{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem}
 .math-card:last-child{margin-bottom:0}
-.math-card h4{font-family:var(--serif);font-size:1rem;margin-bottom:.4rem}
-.math-card p{font-size:.82rem;color:#444;line-height:1.7;margin-bottom:.4rem}
-.math-card p:last-child{margin-bottom:0}
-.learn-lnk{font-size:.72rem;color:var(--accent);font-family:var(--mono)}
-.formula{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;font-family:var(--mono);font-size:.75rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.5rem 0}
-
+.math-card h4{font-family:var(--serif);font-size:.95rem;margin-bottom:.35rem}
+.math-card p{font-size:.8rem;color:#444;line-height:1.7;margin-bottom:.35rem}
+.learn-lnk{font-size:.7rem;color:var(--accent);font-family:var(--mono)}
+.formula{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:.7rem .9rem;font-family:var(--mono);font-size:.72rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.4rem 0}
 .loading{display:none;text-align:center;padding:1.5rem;color:var(--muted);font-family:var(--mono);font-size:.82rem}
 .loading.visible{display:block}
+
+@media(max-width:600px){.model-selector-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div id="nav-root"></div>
 <main>
-  <div class="tool-wrap">
+<div class="tool-wrap">
 
-    <div class="tool-header">
-      <div>
-        <span class="section-label">The tool</span>
-        <h1 class="section-title" style="margin-bottom:0">Crunch your context</h1>
-      </div>
-      <button class="reset-btn" id="reset-btn" title="Clear everything and start fresh">↺ Reset</button>
+  <div class="tool-header">
+    <div>
+      <span class="section-label">The tool</span>
+      <h1 class="section-title" style="margin-bottom:0">Crunch your context</h1>
     </div>
-
-    <!-- MODEL SELECTOR -->
-    <div class="sel-row">
-      <span class="sel-lbl">Model</span>
-      <div class="model-btns" id="model-btns">
-        <button class="mbtn active" data-model="claude">Claude</button>
-        <button class="mbtn" data-model="chatgpt">ChatGPT</button>
-        <button class="mbtn" data-model="gemini">Gemini</button>
-      </div>
-    </div>
-    <div class="sel-row">
-      <span class="sel-lbl">Plan</span>
-      <div id="plan-btns"></div>
-    </div>
-
-    <div class="beh-note" id="beh-note">
-      <span class="beh-tag" id="beh-tag"></span>
-      <span id="beh-text"></span>
-    </div>
-
-    <div class="tool-grid">
-      <!-- INPUT -->
-      <div class="input-pane">
-        <div class="pane-hdr">
-          <span>Paste conversation or upload file</span>
-          <span class="token-live" id="token-live">0 tokens</span>
-        </div>
-        <textarea class="main-ta" id="main-ta" placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response"></textarea>
-        <label class="file-zone" id="file-zone" for="file-input">
-          Drop a file or click &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:.72rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>
-        </label>
-        <input type="file" id="file-input" style="display:none" accept=".txt,.md,.csv,.pdf,.docx,.doc,.pptx,.ppt">
-        <div class="input-footer">
-          <span class="input-note" id="file-status">PDF · PPTX · DOCX · plain text</span>
-          <div style="display:flex;gap:.5rem">
-            <button class="btn btn-secondary" id="analyze-btn" style="font-size:.8rem;padding:.45rem 1rem" disabled>Analyze</button>
-            <button class="btn btn-primary"   id="compress-btn" style="font-size:.8rem;padding:.45rem 1rem" disabled>Compress →</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- GAUGES -->
-      <div class="gauges-pane" id="gauges-pane"></div>
-    </div>
-
-    <div class="loading" id="loading"><span id="loading-msg">Analyzing</span>...</div>
-
-    <div id="output-section" style="display:none">
-      <div class="out-box">
-        <div class="out-hdr">
-          <span>Compressed — ready to paste</span>
-          <div style="display:flex;align-items:center;gap:.6rem">
-            <span class="saved-badge" id="saved-badge"></span>
-            <button class="copy-btn" id="copy-btn">Copy →</button>
-          </div>
-        </div>
-        <div class="out-text" id="out-text"></div>
-        <div class="out-note" id="out-note"></div>
-      </div>
-    </div>
-
-    <div class="math-section" id="math-section" style="display:none">
-      <div class="math-hdr">
-        <div>
-          <span class="section-label">Behind your result</span>
-          <h3 style="font-family:var(--serif);font-size:1.1rem">What the numbers mean</h3>
-        </div>
-        <div class="level-toggle">
-          <button class="level-btn active" data-level="simple">Simple</button>
-          <button class="level-btn" data-level="technical">Technical</button>
-        </div>
-      </div>
-      <div class="math-area" id="math-area"></div>
-    </div>
-
+    <button class="reset-btn" id="reset-btn">↺ Reset</button>
   </div>
+
+  <!-- ── MODEL SELECTOR ── -->
+  <div class="model-selector">
+    <!-- Row 1: model cards -->
+    <div class="model-selector-row" id="model-cards">
+      <div class="model-card active" data-model="claude">
+        <span class="model-card-name">Claude</span>
+        <span class="model-card-note">Anthropic · full recall</span>
+      </div>
+      <div class="model-card" data-model="chatgpt">
+        <span class="model-card-name">ChatGPT</span>
+        <span class="model-card-note">OpenAI · silent truncation</span>
+      </div>
+      <div class="model-card" data-model="gemini">
+        <span class="model-card-name">Gemini</span>
+        <span class="model-card-note">Google · largest window</span>
+      </div>
+    </div>
+    <!-- Row 2: version/plan buttons — updated by JS -->
+    <div class="version-row">
+      <span class="version-lbl">Version</span>
+      <div id="plan-btns" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
+    </div>
+    <div id="tokenizer-note" class="tokenizer-note"></div>
+  </div>
+
+  <!-- Behavior note -->
+  <div class="beh-note" id="beh-note">
+    <span class="beh-tag" id="beh-tag"></span>
+    <span id="beh-text"></span>
+  </div>
+
+  <!-- ── MAIN GRID ── -->
+  <div class="tool-grid">
+    <div class="input-pane">
+      <div class="pane-hdr">
+        <span>Paste conversation or upload file</span>
+        <span class="token-live" id="token-live">0 tokens</span>
+      </div>
+      <textarea class="main-ta" id="main-ta"
+        placeholder="Paste any conversation from Claude, ChatGPT, or Gemini.&#10;&#10;Works best with speaker labels:&#10;Human: your message&#10;Assistant: AI response"></textarea>
+      <label class="file-zone" id="file-zone" for="file-input">
+        Drop a file or click &nbsp;·&nbsp;
+        <span style="font-family:var(--mono);font-size:.7rem">PDF &nbsp;·&nbsp; PPTX &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; TXT</span>
+      </label>
+      <input type="file" id="file-input" style="display:none"
+        accept=".txt,.md,.csv,.pdf,.docx,.doc,.pptx,.ppt">
+      <div class="input-footer">
+        <span class="input-note" id="file-status">PDF · PPTX · DOCX · plain text</span>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-secondary" id="analyze-btn"
+            style="font-size:.78rem;padding:.42rem .9rem" disabled>Analyze</button>
+          <button class="btn btn-primary" id="compress-btn"
+            style="font-size:.78rem;padding:.42rem .9rem" disabled>Compress →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="gauges-pane" id="gauges-pane"></div>
+  </div>
+
+  <div class="loading" id="loading"><span id="loading-msg">Analyzing</span>...</div>
+
+  <div id="output-section" style="display:none">
+    <div class="out-box">
+      <div class="out-hdr">
+        <span>Compressed — ready to paste</span>
+        <div style="display:flex;align-items:center;gap:.55rem">
+          <span class="saved-badge" id="saved-badge"></span>
+          <button class="copy-btn" id="copy-btn">Copy →</button>
+        </div>
+      </div>
+      <div class="out-text" id="out-text"></div>
+      <div class="out-note" id="out-note"></div>
+    </div>
+  </div>
+
+  <div class="math-section" id="math-section" style="display:none">
+    <div class="math-hdr">
+      <div>
+        <span class="section-label">Behind your result</span>
+        <h3 style="font-family:var(--serif);font-size:1.05rem">What the numbers mean</h3>
+      </div>
+      <div class="level-toggle">
+        <button class="level-btn active" data-level="simple">Simple</button>
+        <button class="level-btn" data-level="technical">Technical</button>
+      </div>
+    </div>
+    <div class="math-area" id="math-area"></div>
+  </div>
+
+</div>
 </main>
 <div id="footer-root"></div>
 <script src="shared/nav.js"></script>

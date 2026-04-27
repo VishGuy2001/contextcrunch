@@ -78,10 +78,10 @@ const API = {
 // ── CLIENT-SIDE MATH ──────────────────────────────────────────────────
 
 const TC = {
-  // Context window limits — verified April 2026
+  // Context window limits — verified April 26 2026
   limits: {
-    claude:  { free: 40000, haiku: 200000, sonnet: 1000000, opus: 1000000 },
-    chatgpt: { free: 32000, plus: 272000, pro: 1050000 },
+    claude:  { free: 200000, haiku: 200000, sonnet: 1000000, opus: 1000000 },
+    chatgpt: { free: 32000,  plus: 272000,  pro: 1050000 },
     gemini:  { free: 1048576, pro: 1048576, ultra: 1048576 },
   },
 
@@ -92,15 +92,15 @@ const TC = {
   // Gemini:              SentencePiece unigram ~4.5 chars/token, vocab 256,000
   charsPerToken: {
     claude:  { free: 3.5, haiku: 3.5, sonnet: 3.5, opus: 2.6 },
-    chatgpt: { free: 4.0, plus: 4.0, pro: 4.0 },
-    gemini:  { free: 4.5, pro: 4.5, ultra: 4.5 },
+    chatgpt: { free: 4.0, plus: 4.0,  pro: 4.0 },
+    gemini:  { free: 4.5, pro: 4.5,   ultra: 4.5 },
   },
 
-  // Cost per 1M tokens (input) — USD, verified April 2026
+  // Cost per 1M input tokens (USD) — verified April 26 2026
   costs: {
-    claude:  { free: 0, haiku: 0.80, sonnet: 3.0, opus: 15.0 },
-    chatgpt: { free: 0, plus: 2.5,   pro: 2.5 },
-    gemini:  { free: 0, pro: 1.25,   ultra: 2.50 },
+    claude:  { free: 0,    haiku: 1.0,  sonnet: 3.0,  opus: 5.0  },
+    chatgpt: { free: 0,    plus: 2.5,   pro: 5.0  },
+    gemini:  { free: 0,    pro: 1.25,   ultra: 2.0 },
   },
 
   // File token multipliers by type
