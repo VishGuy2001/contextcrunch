@@ -12,7 +12,7 @@
 .demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .demo-body{padding:1.5rem}
-.demo-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;transition:border-color .2s;margin-bottom:1rem}
+.demo-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;transition:border-color .2s;margin-bottom:1rem;box-sizing:border-box}
 .demo-input:focus{border-color:var(--accent)}
 .token-pills{display:flex;flex-wrap:wrap;gap:.35rem;min-height:40px;margin-bottom:.75rem}
 .tp{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:.3rem .6rem;font-family:var(--mono);font-size:.78rem}
@@ -38,6 +38,10 @@
 .cs{margin-bottom:2.5rem}
 .cs h2{font-size:1.5rem;margin-bottom:.75rem}
 .cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+.formula{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#1a1a1a;color:#e8e8e8;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre}
+.insight-box{background:#f0f8f4;border:1px solid #a8d4be;border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#1a4a35;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:#1a6b4a}
 @media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}.model-grid{grid-template-columns:1fr}.color-legend{gap:.6rem}}
 </style>
 </head>
@@ -72,29 +76,16 @@
         <button class="btn btn-accent" onclick="runTokenize()" style="font-size:.85rem;padding:.45rem 1.1rem">Tokenize →</button>
         <button class="btn btn-secondary" onclick="loadTokExample()" style="font-size:.82rem;padding:.45rem .9rem">Load example</button>
       </div>
-
       <div class="token-pills" id="tok-pills">
         <span style="color:var(--muted);font-size:.85rem;font-family:var(--mono)">Tokens appear here...</span>
       </div>
-
-      <!-- Color legend -->
       <div class="color-legend">
         <span class="legend-label">Color = token boundary:</span>
-        <span class="legend-item">
-          <span class="legend-swatch" style="background:#f0f8f4;border:1px solid #b0d4c4">token</span>
-          <span style="color:var(--muted)">1st</span>
-        </span>
-        <span class="legend-item">
-          <span class="legend-swatch" style="background:#f4f0f8;border:1px solid #c4b0d4">token</span>
-          <span style="color:var(--muted)">2nd</span>
-        </span>
-        <span class="legend-item">
-          <span class="legend-swatch" style="background:#f8f4f0;border:1px solid #d4c4b0">token</span>
-          <span style="color:var(--muted)">3rd</span>
-        </span>
-        <span class="legend-note">— colors cycle every 3 · each colored block = one token unit</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#f0f8f4;border:1px solid #b0d4c4">token</span><span style="color:var(--muted)">1st</span></span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#f4f0f8;border:1px solid #c4b0d4">token</span><span style="color:var(--muted)">2nd</span></span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#f8f4f0;border:1px solid #d4c4b0">token</span><span style="color:var(--muted)">3rd</span></span>
+        <span class="legend-note">— each colored block = one token</span>
       </div>
-
       <div class="stat-grid">
         <div class="stat-box"><span class="stat-num" id="tok-chars">0</span><span class="stat-lbl">characters</span></div>
         <div class="stat-box"><span class="stat-num" id="tok-count">0</span><span class="stat-lbl">tokens</span></div>
@@ -104,57 +95,38 @@
     </div>
   </div>
 
-  <!-- MODEL COMPARISON — verified April 2026 -->
+  <!-- MODEL COMPARISON -->
   <div class="cs">
     <h2>How each model tokenizes and handles context</h2>
     <div class="model-grid">
       <div class="mc">
         <div class="mc-hdr" style="border-top:3px solid #c4602a">Claude</div>
         <div class="mc-body">
-          Full recall. Re-reads everything every message. Tells you when it hits the limit.
-          Opus 4.7 uses a new tokenizer — up to 35% more tokens than older Claude models.
+          Full recall up to the context limit — re-reads everything every message. Tells you when it hits the limit. Opus 4.7 uses a new tokenizer producing up to 35% more tokens than older Claude models for the same text.
           <div class="mc-limit">Haiku 4.5: 200k · Sonnet 4.6: 1M · Opus 4.7: 1M</div>
-          <div class="mc-tok">Tokenizer: Custom BPE · ~3.5 chars/token (Haiku/Sonnet) · ~2.6 (Opus 4.7)</div>
+          <div class="mc-tok">Custom BPE · ~3.5 chars/token (Haiku/Sonnet) · ~2.6 (Opus 4.7)</div>
         </div>
       </div>
       <div class="mc">
         <div class="mc-hdr" style="border-top:3px solid #1a6b4a">ChatGPT</div>
         <div class="mc-body">
-          Silent truncation — drops oldest messages without telling you. The only model with exact public token counts via tiktoken.
-          <div class="mc-limit">Free (GPT-5.4 Mini): ~32k · Plus (GPT-5.4): 272k · Pro: 1.05M</div>
-          <div class="mc-tok">Tokenizer: cl100k BPE · ~4.0 chars/token · vocab 100,277</div>
+          Silent truncation — drops oldest messages without telling you when the window fills. The only model with exact public token counts via tiktoken (cl100k).
+          <div class="mc-limit">Free (GPT-4o mini): 32k · Plus (GPT-4o): 272k · Pro: 1.05M</div>
+          <div class="mc-tok">cl100k BPE · ~4.0 chars/token · vocab 100,277</div>
         </div>
       </div>
       <div class="mc">
         <div class="mc-hdr" style="border-top:3px solid #1e4f8a">Gemini</div>
         <div class="mc-body">
-          Largest vocab = fewest tokens per word. Rate limits hit before token limits on free tier.
-          <div class="mc-limit">Free (2.5 Flash): 1,048,576 · Pro (2.5 Pro): 1,048,576 · Ultra (3.1 Pro): 1,048,576</div>
-          <div class="mc-tok">Tokenizer: SentencePiece unigram · ~4.5 chars/token · vocab 256,000</div>
+          Largest vocabulary = fewest tokens per word, so it uses its window more efficiently. Rate limits hit before token limits on free tier — you'll see quota errors before context errors.
+          <div class="mc-limit">Free (2.5 Flash): 1M · Pro (2.5 Pro): 1M</div>
+          <div class="mc-tok">SentencePiece unigram · ~4.5 chars/token · vocab 256,000</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ASK THE AI DEMO -->
-  <div class="demo-box">
-    <div class="demo-hdr">
-      <span class="demo-hdr-title">Ask the AI — live explanations</span>
-      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Powered by Groq Llama 3.1 8B</span>
-    </div>
-    <div class="demo-body">
-      <input class="demo-input" id="ai-tok-input" placeholder="e.g. 'Why does Opus 4.7 use more tokens than Sonnet 4.6?'">
-      <button class="btn btn-primary" onclick="askAI('tokens','ai-tok-input','ai-tok-result')" style="font-size:.88rem;margin-bottom:1rem">Ask →</button>
-      <div class="demo-result" id="ai-tok-result"></div>
-    </div>
-  </div>
-
   <div id="level-content"></div>
-
-  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
-    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See your own conversation tokenized and analyzed.</p>
-    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
-  </div>
 </div>
 </main>
 <div id="footer-root"></div>
@@ -166,43 +138,30 @@
 const EXAMPLES = [
   'Hello world',
   'The transformer model processes your entire conversation from the start on every single message.',
-  'def turboquant(x): return pq.encode(embed(x))',
+  'def attention(Q, K, V): return softmax(Q @ K.T / sqrt(d)) @ V',
   'I need you to please help me understand machine learning in detail',
 ];
 let exIdx = 0;
-
-function loadTokExample(){
-  document.getElementById('tok-input').value = EXAMPLES[exIdx++ % EXAMPLES.length];
-  runTokenize();
-}
+function loadTokExample(){ document.getElementById('tok-input').value = EXAMPLES[exIdx++ % EXAMPLES.length]; runTokenize(); }
 
 async function runTokenize(){
   const text  = document.getElementById('tok-input').value.trim();
   const model = document.getElementById('tok-model').value;
   if(!text){ document.getElementById('tok-status').textContent = 'Enter text first'; return; }
-
-  // Instant client-side preview using model-specific ratio
-  const planMap  = { chatgpt:'plus', claude:'sonnet', gemini:'free' };
+  const planMap = { chatgpt:'plus', claude:'sonnet', gemini:'free' };
   const clientEst = TC.estimate(text, model, planMap[model]);
   document.getElementById('tok-chars').textContent = text.length.toLocaleString();
   document.getElementById('tok-count').textContent = clientEst.toLocaleString() + ' (est)';
   document.getElementById('tok-status').textContent = 'Getting exact count...';
-
-  // Visual token split — approximate BPE
   const parts = text.match(/\w+|[^\w\s]|\s+/g) || [];
   const tokens = [];
   for(const p of parts){
-    if(!p.trim()){ if(tokens.length) tokens[tokens.length-1] += p; else tokens.push(p); }
-    else if(p.length > 6){ const m = Math.ceil(p.length/2); tokens.push(p.slice(0,m), p.slice(m)); }
+    if(!p.trim()){ if(tokens.length) tokens[tokens.length-1]+=p; else tokens.push(p); }
+    else if(p.length>6){ const m=Math.ceil(p.length/2); tokens.push(p.slice(0,m),p.slice(m)); }
     else tokens.push(p);
   }
-  const colors = ['c1','c2','c3'];
-  document.getElementById('tok-pills').innerHTML = tokens
-    .filter(t => t)
-    .map((t,i) => `<span class="tp ${colors[i%3]}">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`)
-    .join('');
-
-  // Real backend call
+  const colors=['c1','c2','c3'];
+  document.getElementById('tok-pills').innerHTML = tokens.filter(t=>t).map((t,i)=>`<span class="tp ${colors[i%3]}">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`).join('');
   try {
     const result = await API.demoTokenize(text, model);
     document.getElementById('tok-count').textContent  = result.token_count.toLocaleString();
@@ -211,69 +170,68 @@ async function runTokenize(){
     document.getElementById('tok-result').style.display = 'block';
     document.getElementById('tok-result').innerHTML = `<p style="font-size:.82rem;color:#555;font-family:var(--mono)">${result.note}</p>`;
   } catch(e){
-    document.getElementById('tok-status').textContent = 'Backend unavailable — showing client estimate';
-    document.getElementById('tok-ratio').textContent  = clientEst > 0 ? (text.length/clientEst).toFixed(1) : '—';
+    document.getElementById('tok-status').textContent = 'Backend unavailable — showing estimate';
+    document.getElementById('tok-ratio').textContent  = clientEst>0?(text.length/clientEst).toFixed(1):'—';
   }
-}
-
-async function askAI(concept, inputId, resultId){
-  const input = document.getElementById(inputId).value.trim();
-  if(!input) return;
-  demoLoading(resultId, 'Asking Llama 3.1 8B');
-  try {
-    const r = await API.demo(concept, input, 'tokenize');
-    document.getElementById(resultId).innerHTML = formatDemoResult(r.result);
-  } catch(e){ demoError(resultId, 'Backend unavailable: ' + e.message); }
 }
 
 let debounce;
 document.getElementById('tok-input').addEventListener('input', () => {
   clearTimeout(debounce);
-  debounce = setTimeout(() => {
-    if(document.getElementById('tok-input').value.length > 3) runTokenize();
-  }, 600);
+  debounce = setTimeout(() => { if(document.getElementById('tok-input').value.length > 3) runTokenize(); }, 600);
 });
 
 const levels = {
   simple: `
     <div class="cs">
-      <h2>What is a token?</h2>
-      <p>A token is a chunk of text — but the exact size depends on which AI you're using. Claude, ChatGPT, and Gemini each use a different tokenizer trained on different data with a different vocabulary. "Hello" might be 1 token in all three — but "Unbelievable" could be 2 tokens in one model and 3 in another.</p>
-      <p>Roughly speaking: ChatGPT splits text into ~4 characters per token, Claude into ~3.5, and Gemini into ~4.5 because it has a larger vocabulary of 256,000 tokens.</p>
-      <h2>Why does Claude Opus 4.7 cost more?</h2>
-      <p>Opus 4.7 launched with a brand new tokenizer — it produces up to 35% more tokens for the same text compared to older Claude models. Same price per token, but more tokens per sentence means higher bills. Haiku 4.5 and Sonnet 4.6 use the original tokenizer.</p>
+      <h2>What exactly is a token?</h2>
+      <p>A token is a chunk of text — not necessarily a whole word. Think of it like the AI reading your message in syllable-sized bites. "Hello" is 1 token. "Unbelievable" might be split into 3. Spaces, punctuation, and capitalization all affect how text gets split.</p>
+      <p>Here's the key number to remember: <strong>roughly 750 words ≈ 1,000 tokens</strong> for English prose. Code and technical content use fewer tokens per character because the patterns are more regular. Filler phrases like "I'd be happy to help you with that" burn tokens without adding information.</p>
+      <div class="insight-box">
+        <strong>Why this matters for your session limit</strong>
+        Every time you send a message, the model reads your entire conversation from the beginning — not just the latest message. So a 10,000 token conversation doesn't cost 10,000 tokens to respond to. It costs 10,000 tokens plus whatever the response adds. The window fills up faster than it seems.
+      </div>
+      <h2>Why does the context window matter even on Pro?</h2>
+      <p>Even on Claude Pro with a 1M token window, context degrades before you hit the hard limit. Around 60–70% fill, earlier messages start losing weight in the model's attention — it's not that the information disappears, it's that the model spreads its attention thinner across more tokens and recent content dominates. You see this as the model "forgetting" something you said an hour ago.</p>
+      <p>Compressing your conversation — removing filler, redundancy, and repeated context — stretches the same session further and keeps the important information weighted properly.</p>
     </div>`,
   technical: `
     <div class="cs">
       <h2>Three different tokenizer algorithms</h2>
-      <p>Token counting is not interchangeable across models. Each uses a different algorithm and vocabulary.</p>
-      <div class="formula">Claude Haiku/Sonnet  Custom BPE      ~3.5 chars/token  vocab ~100k
-Claude Opus 4.7      New BPE (+35%)  ~2.6 chars/token  vocab ~100k+
-ChatGPT (cl100k)     BPE             ~4.0 chars/token  vocab 100,277
-Gemini               SentencePiece   ~4.5 chars/token  vocab 256,000
+      <p>Token counting is not interchangeable across models. Each uses a different algorithm, training corpus, and vocabulary size — meaning the same sentence produces different token counts depending on which model you're targeting.</p>
+      <div class="formula">Model            Algorithm        Chars/token  Vocab size
+─────────────────────────────────────────────────────
+Claude Haiku/Sonnet  Custom BPE       ~3.5         ~100k
+Claude Opus 4.7      New BPE (+35%)   ~2.6         ~100k+
+ChatGPT (cl100k)     BPE              ~4.0         100,277
+Gemini               SentencePiece    ~4.5         256,000
 
-Same sentence: "The transformer processes tokens"
-  Claude Sonnet:  ~8 tokens
-  ChatGPT Plus:   ~6 tokens
-  Gemini Flash:   ~7 tokens</div>
+Same input: "The transformer processes tokens efficiently"
+  Claude Sonnet 4.6:  ~8 tokens
+  ChatGPT Plus:       ~6 tokens
+  Gemini Flash:       ~7 tokens</div>
+      <p>BPE (Byte Pair Encoding) learns merge rules from a training corpus — common subword sequences get merged into single tokens. SentencePiece uses a unigram language model to find the optimal segmentation. Neither is "better" — they encode different priors about language structure.</p>
+      <p>The practical consequence: if you're building something that runs on multiple models, you can't use one model's token count to estimate another's. Always estimate per-model.</p>
       <div class="code-block">import tiktoken
 
-# ChatGPT — exact count via tiktoken (public)
-enc = tiktoken.get_encoding("cl100k_base")
-tokens = enc.encode("Hello, how are you?")
-print(len(tokens))  # 6 — exact
+# ChatGPT — exact count via public tokenizer
+enc    = tiktoken.get_encoding("cl100k_base")
+tokens = enc.encode("Hello, how are you today?")
+print(len(tokens), tokens)  # 7 exact — with token IDs
 
-# Claude — no public tokenizer, estimate only
-claude_estimate = len("Hello, how are you?") / 3.5  # ~5.4 → 6 tokens
+# Claude — no public tokenizer, estimate from chars
+# Sonnet/Haiku: ~3.5 chars/token
+# Opus 4.7:     ~2.6 chars/token (new tokenizer, 35% more tokens)
+text            = "Hello, how are you today?"
+claude_estimate = len(text) / 3.5   # ~7.1 → 8 tokens
+opus_estimate   = len(text) / 2.6   # ~9.6 → 10 tokens
 
-# Gemini — no public tokenizer, estimate only
-gemini_estimate = len("Hello, how are you?") / 4.5  # ~4.2 → 5 tokens
-
-# Opus 4.7 uses a new tokenizer — up to 35% more than older Claude
-# Source: platform.claude.com/docs/en/about-claude/models/whats-new-claude-4-7</div>
+# Gemini — SentencePiece, largest vocab = fewest tokens/word
+gemini_estimate = len(text) / 4.5   # ~5.6 → 6 tokens</div>
+      <h2>Why attention degrades before the hard limit</h2>
+      <p>Transformer attention is computed over all tokens in the context window. As the window fills, the attention distribution spreads across more token pairs — earlier tokens receive proportionally less attention weight. This is distinct from the hard context limit; it's a gradual quality degradation starting around 60–70% fill that becomes significant before you ever hit the cutoff.</p>
     </div>`,
 };
-
 setLevel('simple', document.querySelector('.level-btn'), levels);
 </script>
 </body>

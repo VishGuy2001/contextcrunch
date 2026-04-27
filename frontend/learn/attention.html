@@ -21,6 +21,10 @@
 .cs{margin-bottom:2.5rem}
 .cs h2{font-size:1.5rem;margin-bottom:.75rem}
 .cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+.formula{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#1a1a1a;color:#e8e8e8;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre}
+.insight-box{background:#f0f8f4;border:1px solid #a8d4be;border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#1a4a35;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:#1a6b4a}
 </style>
 </head>
 <body>
@@ -35,7 +39,6 @@
   <div class="level-toggle" style="margin-bottom:2rem">
     <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
     <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
-    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
   </div>
 
   <!-- LIVE O(n²) CALCULATOR -->
@@ -55,36 +58,22 @@
         <select id="model-limit" onchange="calcAttn()" style="font-family:var(--mono);font-size:.82rem;padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--white)">
           <option value="40000">Claude Free (40k)</option>
           <option value="200000" selected>Claude Plus/Max (200k)</option>
-          <option value="16385">ChatGPT Free (16k)</option>
-          <option value="128000">ChatGPT Plus (128k)</option>
-          <option value="32000">Gemini Free (32k)</option>
-          <option value="1000000">Gemini Pro (1M)</option>
+          <option value="1000000">Claude Pro (1M)</option>
+          <option value="32000">ChatGPT Free (32k)</option>
+          <option value="272000">ChatGPT Plus (272k)</option>
+          <option value="1048576">Gemini Free/Pro (1M)</option>
         </select>
         <span style="font-family:var(--mono);font-size:.85rem;min-width:80px;text-align:right" id="pct-val">10%</span>
       </div>
-
-      <!-- Visual progress bar -->
       <div style="background:var(--mid);border-radius:6px;height:12px;margin-bottom:1.5rem;overflow:hidden">
         <div id="fill-bar" style="height:100%;border-radius:6px;background:var(--accent);transition:width .3s,background .3s;width:10%"></div>
       </div>
-
       <div class="cost-grid">
-        <div class="cost-card">
-          <span class="cost-num" id="mult-val">0.04×</span>
-          <span class="cost-lbl">attention cost vs baseline</span>
-        </div>
-        <div class="cost-card">
-          <span class="cost-num" id="pct-display">10%</span>
-          <span class="cost-lbl">context window used</span>
-        </div>
-        <div class="cost-card">
-          <span class="cost-num" id="zone-val" style="color:var(--accent)">Fast</span>
-          <span class="cost-lbl">response speed zone</span>
-        </div>
+        <div class="cost-card"><span class="cost-num" id="mult-val">0.04×</span><span class="cost-lbl">attention cost vs baseline</span></div>
+        <div class="cost-card"><span class="cost-num" id="pct-display">10%</span><span class="cost-lbl">context window used</span></div>
+        <div class="cost-card"><span class="cost-num" id="zone-val" style="color:var(--accent)">Fast</span><span class="cost-lbl">response speed zone</span></div>
       </div>
       <div style="font-size:.82rem;color:#555;margin-top:1rem;font-family:var(--mono);line-height:1.6" id="attn-msg"></div>
-
-      <!-- Compression benefit -->
       <div style="margin-top:1.25rem;padding:1rem;background:var(--white);border:1px solid var(--border);border-radius:8px">
         <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">ContextCrunch compression benefit</div>
         <div class="slider-row" style="margin-bottom:.5rem">
@@ -97,29 +86,7 @@
     </div>
   </div>
 
-  <!-- ASK AI ABOUT ATTENTION -->
-  <div class="demo-box">
-    <div class="demo-hdr">
-      <span class="demo-hdr-title">Ask about attention — live AI explanation</span>
-      <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Powered by Groq</span>
-    </div>
-    <div class="demo-body">
-      <input style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;margin-bottom:.75rem" id="ai-attn-input" placeholder="e.g. 'Why does context length affect response time quadratically?'">
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
-        <button class="btn btn-accent" onclick="askAttnAI()" style="font-size:.85rem;padding:.45rem 1.1rem">Ask →</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('ai-attn-input').value='Explain self-attention and why it is O(n²)';askAttnAI()" style="font-size:.82rem;padding:.45rem .9rem">Self-attention</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('ai-attn-input').value='What is KV cache and why does it grow?';askAttnAI()" style="font-size:.82rem;padding:.45rem .9rem">KV cache</button>
-      </div>
-      <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.25rem;min-height:60px" id="ai-attn-result"></div>
-    </div>
-  </div>
-
   <div id="level-content"></div>
-
-  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
-    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">See the latency impact of your current conversation.</p>
-    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the tool →</a>
-  </div>
 </div>
 </main>
 <div id="footer-root"></div>
@@ -144,9 +111,9 @@ function calcAttn(){
   const fillBar=document.getElementById('fill-bar');
   fillBar.style.width=pct+'%';
   let zone,color,msg;
-  if(pct<40){zone='Fast';color='var(--accent)';msg=`At ${pct}% fill — responses are at optimal speed (${mult}× baseline).`;}
-  else if(pct<70){zone='Slowing';color='var(--warn)';msg=`At ${pct}% fill — responses are ~${mult}× slower than conversation start. Consider compressing.`;}
-  else{zone='Slow';color='var(--danger)';msg=`At ${pct}% fill — responses are ~${mult}× slower. Compression strongly recommended.`;}
+  if(pct<40){zone='Fast';color='var(--accent)';msg=`At ${pct}% fill — responses at optimal speed (${mult}× baseline).`;}
+  else if(pct<70){zone='Slowing';color='var(--warn)';msg=`At ${pct}% fill — responses ~${mult}× slower than conversation start.`;}
+  else{zone='Slow';color='var(--danger)';msg=`At ${pct}% fill — responses ~${mult}× slower. Compression strongly recommended.`;}
   fillBar.style.background=color;
   document.getElementById('zone-val').textContent=zone;
   document.getElementById('zone-val').style.color=color;
@@ -157,51 +124,74 @@ function calcAttn(){
 }
 calcAttn();
 
-async function askAttnAI(){
-  const q=document.getElementById('ai-attn-input').value.trim();
-  if(!q) return;
-  demoLoading('ai-attn-result','Asking Llama 3.1 8B');
-  try{const r=await API.demo('attention',q,'attention');document.getElementById('ai-attn-result').innerHTML=formatDemoResult(r.result);}
-  catch(e){demoError('ai-attn-result','Backend unavailable: '+e.message);}
-}
+const levels = {
+  simple: `
+    <div class="cs">
+      <h2>Why does a longer conversation make responses slower?</h2>
+      <p>Before the AI answers your latest message, it re-reads your entire conversation — every single message, every response, from the very beginning. It doesn't just pick up where it left off. This re-reading step is where the slowdown comes from.</p>
+      <p>The cost of this re-reading is <em>quadratic</em>, not linear. That means doubling your conversation length doesn't double the work — it quadruples it. Triple the length, nine times the work. This is the O(n²) problem.</p>
+      <div class="insight-box">
+        <strong>A concrete example</strong>
+        Start of session (2,000 tokens): the model computes ~4 million token pair relationships before responding.<br><br>
+        Mid session (20,000 tokens): ~400 million pairs — 100× more work for 10× more tokens.<br><br>
+        Late session (100,000 tokens): ~10 billion pairs. This is why responses feel sluggish at 60%+ fill even when you still have headroom left.
+      </div>
+      <h2>Why compression helps more than you'd expect</h2>
+      <p>A 30% token reduction sounds modest. But because the cost is quadratic, reducing tokens by 30% actually reduces compute by 51% — because (0.7)² = 0.49. That's the speedup shown in the calculator above. The quadratic relationship means compression benefits compound: small reductions in tokens produce outsized reductions in latency.</p>
+    </div>`,
+  technical: `
+    <div class="cs">
+      <h2>Self-attention is O(n²) — here's exactly why</h2>
+      <p>The attention mechanism computes a weighted combination of all token values, where the weights come from comparing every token against every other token. For n tokens, that's n² comparisons — one for each pair. This is not an implementation choice. It's fundamental to how attention works.</p>
+      <div class="formula">Attention(Q, K, V) = softmax(QKᵀ / √d_k) · V
 
-const levels={
-  simple:`<div class="cs"><h2>Why does longer context = slower responses?</h2><p>Before answering your message, the AI reads your entire conversation from the very beginning. Every single message, every response — all of it, every time. As conversations get longer, this reading task gets exponentially harder.</p><p>It's quadratic, not linear. Double your conversation length and the AI has to do four times as much work per response. Triple it and it does nine times as much work. This is why long Claude conversations feel slow toward the end.</p></div>`,
-  technical:`<div class="cs"><h2>Self-attention complexity: O(n²)</h2><p>The attention mechanism computes relationships between all token pairs. For n tokens, that's n² pairs — hence the quadratic scaling.</p><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d) · V
+Where:
+  Q ∈ ℝⁿˣᵈ  — query matrix  (each token asking a question)
+  K ∈ ℝⁿˣᵈ  — key matrix    (each token providing an answer)
+  V ∈ ℝⁿˣᵈ  — value matrix  (the actual content to retrieve)
+  d_k        — key dimension (scaling to prevent vanishing gradients)
 
-Complexity: O(n²·d) time, O(n²) memory
+QKᵀ produces an n×n attention matrix — n² values.
+Each value scores how much token i should attend to token j.
 
-Latency model:
-  T(n) ∝ n²
-  Multiplier = (pct/50)² vs baseline at 50%</div><div class="code-block">def attn_multiplier(tokens: int, limit: int) -> float:
-    pct = tokens / limit * 100
-    return round((pct / 50) ** 2, 2)
+Time complexity:  O(n²·d)
+Space complexity: O(n²)
 
-# 10% fill → 0.04× (very fast)
-# 50% fill → 1.0× (baseline)
-# 90% fill → 3.24× slower</div></div>`,
-  academic:`<div class="cs"><h2>Scaled dot-product attention</h2><div class="formula">Attention(Q,K,V) = softmax(QKᵀ/√d_k) · V
-Q,K ∈ ℝ^{n×d_k}, V ∈ ℝ^{n×d_v}
+ContextCrunch latency model (empirical):
+  multiplier = (fill_pct / 50)²
+  At 50% fill = 1× baseline
+  At 75% fill = 2.25× baseline
+  At 100% fill = 4× baseline
 
-Time: O(n²·d), Memory: O(n²)
+Compression speedup at ratio ρ:
+  speedup = 1 / (1 - ρ)²
+  ρ = 0.30 → 1/(0.70)² = 2.04× faster
+  ρ = 0.50 → 1/(0.50)² = 4.00× faster</div>
+      <div class="code-block">import numpy as np
 
-Compression speedup:
-  T_compressed ∝ (n(1-ρ))² = n²(1-ρ)²
-  At ρ=0.3: speedup = 1/(0.7)² ≈ 2.04×
-  At ρ=0.5: speedup = 1/(0.5)² = 4.0×</div><div class="code-block">import numpy as np
+def attention(Q: np.ndarray, K: np.ndarray, V: np.ndarray) -> np.ndarray:
+    """
+    Scaled dot-product attention. O(n²·d) time, O(n²) space.
+    The n×n matrix QK^T is the bottleneck for long-context inference.
+    """
+    d_k    = Q.shape[-1]
+    scores = (Q @ K.T) / np.sqrt(d_k)       # n×n — n² values computed here
+    exp_s  = np.exp(scores - scores.max(-1, keepdims=True))
+    w      = exp_s / exp_s.sum(-1, keepdims=True)  # softmax
+    return w @ V                                    # weighted sum of values
 
-def attention(Q, K, V):
-    """O(n²·d) — bottleneck for long-context inference."""
-    d_k = Q.shape[-1]
-    scores = (Q @ K.T) / np.sqrt(d_k)        # O(n²·d_k)
-    exp_s = np.exp(scores - scores.max(-1,keepdims=True))
-    w = exp_s / exp_s.sum(-1, keepdims=True)  # softmax O(n²)
-    return w @ V                               # O(n²·d_v)
+# Pair count grows quadratically
+n_10k   = 10_000;  print(f"10k tokens:  {n_10k**2:,} pairs")    # 100,000,000
+n_100k  = 100_000; print(f"100k tokens: {n_100k**2:,} pairs")   # 10,000,000,000
 
-# Ref: Vaswani et al. (2017). Attention Is All You Need. NeurIPS.
-# FlashAttention (Dao 2022) reduces memory O(n²)→O(n) but time stays O(n²).</div></div>`
+# FlashAttention note: reduces memory O(n²) → O(n) via tiling,
+# but time complexity remains O(n²) — same number of operations,
+# just fewer memory reads. Latency improves in practice but scaling holds.</div>
+      <h2>KV cache and why it doesn't fully solve this</h2>
+      <p>KV caching stores the computed key and value matrices between tokens so they don't need to be recomputed on each forward pass. This helps significantly — but the cache grows linearly with context length, consuming memory. And crucially, the attention computation over the full cached KV still requires attending to all n previous positions. The quadratic scaling of attention scores persists even with caching.</p>
+    </div>`,
 };
-setLevel('simple',document.querySelector('.level-btn'),levels);
+setLevel('simple', document.querySelector('.level-btn'), levels);
 </script>
 </body>
 </html>

@@ -12,7 +12,7 @@
 .demo-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .demo-hdr-title{font-family:var(--mono);font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .demo-body{padding:1.5rem}
-.prompt-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem}
+.prompt-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1rem;box-sizing:border-box}
 .prompt-textarea:focus{border-color:var(--accent)}
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
 .stat-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center}
@@ -29,6 +29,11 @@
 .cs{margin-bottom:2.5rem}
 .cs h2{font-size:1.5rem;margin-bottom:.75rem}
 .cs p{font-size:.95rem;color:#444;line-height:1.75;margin-bottom:.75rem}
+.formula{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#1a1a1a;color:#e8e8e8;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre}
+.insight-box{background:#f0f8f4;border:1px solid #a8d4be;border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#1a4a35;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:#1a6b4a}
+@media(max-width:600px){.waste-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -43,7 +48,6 @@
   <div class="level-toggle" style="margin-bottom:2rem">
     <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
     <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
-    <button class="level-btn" onclick="setLevel('academic',this,levels)">Academic</button>
   </div>
 
   <!-- LIVE PROMPT IMPROVER -->
@@ -61,10 +65,10 @@
       </div>
       <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
         <button class="btn btn-accent" id="compress-btn" onclick="compressPrompt()" disabled style="font-size:.88rem;padding:.6rem 1.25rem">Compress this prompt →</button>
-        <button class="btn btn-secondary" onclick="loadSample()" style="font-size:.82rem;padding:.6rem 1.1rem">Load sample</button>
+        <button class="btn btn-secondary" onclick="loadSample()"  style="font-size:.82rem;padding:.6rem 1.1rem">Load sample</button>
         <button class="btn btn-secondary" onclick="loadSample2()" style="font-size:.82rem;padding:.6rem 1.1rem">Another sample</button>
       </div>
-      <div id="prompt-loading" style="display:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:1rem"><span class="spin">◌</span> Rewriting with Groq Llama 3.3 70B<span class="loading-dots"></span></div>
+      <div id="prompt-loading" style="display:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:1rem">Rewriting with Groq Llama 3.3 70B...</div>
       <div class="output-box" id="prompt-output">
         <div class="output-hdr">
           <span>Compressed prompt — ready to paste</span>
@@ -91,11 +95,6 @@
   </div>
 
   <div id="level-content"></div>
-
-  <div style="background:var(--accent-light);border:1px solid #a8d4be;border-radius:10px;padding:1.25rem;margin-top:2rem">
-    <p style="font-size:.9rem;color:#1a4a35;margin-bottom:.75rem">Compress your full conversation, not just a single prompt.</p>
-    <a href="../tool.html" class="btn btn-accent" style="font-size:.88rem">Try the full tool →</a>
-  </div>
 </div>
 </main>
 <div id="footer-root"></div>
@@ -140,7 +139,7 @@ async function compressPrompt(){
     document.getElementById('p-tokens').textContent=r.compressed_tokens.toLocaleString();
   }catch(e){
     document.getElementById('prompt-output').style.display='block';
-    document.getElementById('output-text').textContent='Backend unavailable: '+e.message+'\nMake sure api.contextcrunch.io is running.';
+    document.getElementById('output-text').textContent='Backend unavailable: '+e.message;
   }finally{
     document.getElementById('prompt-loading').style.display='none';
     document.getElementById('compress-btn').disabled=false;
@@ -153,41 +152,71 @@ function copyOutput(){
   setTimeout(()=>event.target.textContent='Copy →',2000);
 }
 
-const levels={
-  simple:`<div class="cs"><h2>The most common waste: saying more than you need to</h2><p>Most people use 2-3× more tokens than necessary when prompting AI. Politeness filler, redundant context-setting, over-specifying obvious things — all of these cost tokens without adding information.</p><p>The best prompts are precise and direct. "Explain machine learning: concept, real-world uses, brief history" says everything "Could you please help me understand and explain in detail the concept of machine learning..." says — in 60% fewer tokens.</p></div>`,
-  technical:`<div class="cs"><h2>Mutual information and redundancy</h2><p>ContextCrunch scores prompts by measuring mutual information between sentence pairs. High MI means two parts say the same thing — one can go.</p><div class="formula">I(A;B) = H(A) + H(B) - H(A,B)
-I(A;B) > threshold → A and B are redundant
+const levels = {
+  simple: `
+    <div class="cs">
+      <h2>Why does prompt wording affect your session limit?</h2>
+      <p>Every word you type costs tokens. Every token in your prompt gets re-read by the model on every single response. So inefficient prompts don't just cost more per query — they fill your context window faster, which means your session degrades sooner and you hit limits more quickly.</p>
+      <p>Most people use 2–3× more tokens than necessary when prompting AI. Not because they're writing badly — because natural language is full of politeness and hedging that feels right to us but carries zero information for the model. "I was hoping you could please help me understand..." and "Explain..." produce the same output. The first uses 14 tokens. The second uses 1.</p>
+      <div class="insight-box">
+        <strong>What ContextCrunch looks for</strong>
+        Filler openers ("I'd be happy to", "Of course!", "Certainly") — zero information content, always removable.<br><br>
+        Repeated context — if you said something three messages ago, the model already has it. Saying it again wastes tokens without adding anything the model doesn't know.<br><br>
+        Over-specification — "helpful and useful and informative and accurate" is four tokens saying what one word ("helpful") already implies.
+      </div>
+      <h2>What a good prompt looks like</h2>
+      <p>Precise and direct. "Explain machine learning: concept, real-world uses, brief history" says everything that "Could you please help me understand and explain in detail the concept of machine learning and could you also provide examples..." says — in about 60% fewer tokens. The quality of the response is identical. The cost to your session limit is not.</p>
+    </div>`,
+  technical: `
+    <div class="cs">
+      <h2>Mutual information and prompt redundancy</h2>
+      <p>The formal measure of how much information sentence B adds given sentence A is mutual information: I(A;B) = H(A) + H(B) - H(A,B). When I(A;B) is high, the two sentences convey the same information — one is redundant. ContextCrunch uses this as the theoretical basis for deciding what to remove.</p>
+      <div class="formula">Mutual Information:
+  I(A;B) = H(A) + H(B) - H(A,B)
 
-Common flagged patterns:
-  Polite filler: "please", "could you" → 0 information
-  Restatements: "as I mentioned" → negative info
-  Over-spec: "helpful and useful and relevant" → 1 concept</div><div class="code-block">def prompt_efficiency(prompt: str) -> float:
-    tokens = count_tokens(prompt)
-    entropy = shannon_entropy(prompt)
-    redundancy = redundancy_score(prompt)
-    # Efficiency = 1 - fraction of tokens that are redundant
-    return round(1 - (redundancy["score"]/100), 2)</div></div>`,
-  academic:`<div class="cs"><h2>MDL principle for prompt optimization</h2><p>An optimal prompt minimizes description length while preserving I(response; intent). Formally: min |T(P)| subject to I(R; intent) ≥ Q_target.</p><div class="formula">Minimum Description Length (MDL):
-  P* = argmin_{P: quality≥Q} K(P)
-  K(P) ≈ |T(P)| · H(T(P))
+Where:
+  H(A)    = entropy of sentence A alone
+  H(B)    = entropy of sentence B alone
+  H(A,B)  = joint entropy of A and B together
+  I(A;B)  = bits of information A and B share
 
-Sentence s is redundant if:
-  I(s; intent | P\s) ≈ 0
-  i.e. H(intent|P) ≈ H(intent|P∪{s})</div><div class="code-block">from sentence_transformers import SentenceTransformer
-import numpy as np
+When I(A;B) ≈ H(A): B contains everything A does → A is removable
+When I(A;B) ≈ 0:    A and B are independent → both carry unique info
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+Common patterns and their MI:
+  "please" added to any request:        I ≈ 0 bits (no output change)
+  "as I mentioned earlier" restatement: I ≈ H(A) bits (fully redundant)
+  New constraint added to prompt:       I < H(A) bits (keep it)</div>
+      <p>The practical implementation doesn't compute MI directly — it uses semantic similarity as a proxy. High cosine similarity between sentence embeddings correlates with high mutual information. But the MI framing is why the threshold is set at 0.85 for prompt compression (lower than the 0.88 used for conversation compression) — prompts need to be more aggressively compressed since every token costs twice: once in the prompt, once when the model re-reads context.</p>
+      <div class="code-block">from contextcrunch.llm_engine import _remove_semantic_redundancy, _groq
+from contextcrunch.llm_engine import PROMPT_IMPROVEMENT_SYSTEM
 
-def info_gain(sentence: str, context: str, τ=0.82) -> float:
-    """Estimate information gain of adding sentence to context."""
-    if not context.strip(): return 1.0
-    embs = model.encode([sentence, context], normalize_embeddings=True)
-    sim = float(np.dot(embs[0], embs[1]))
-    return max(0.0, 1.0 - (sim - τ) / (1.0 - τ))
-# Ref: Rissanen (1978). MDL. Automatica.</div></div>`
+def improve_prompt(prompt_text: str) -> dict:
+    """
+    Stage 1: semantic dedup on prompts >50 words.
+    Removes sentences with cosine sim >0.85 to prior sentences.
+    Lower threshold than conversation (0.88) — prompts need tighter compression.
+    """
+    input_text = prompt_text
+    if len(prompt_text.split()) > 50:
+        input_text = _remove_semantic_redundancy(prompt_text, threshold=0.85)
+
+    # Stage 2: Groq Llama 3.3 70B rewrite
+    # temperature=0.05 → near-deterministic output, consistent compression
+    messages = [
+        {"role": "system", "content": PROMPT_IMPROVEMENT_SYSTEM},
+        {"role": "user",   "content": f"Rewrite to use fewer tokens:\\n\\n{input_text}"}
+    ]
+    result = _groq(messages, temperature=0.05, max_tokens=800)
+
+    # Structured output: parses COMPRESSED: and CHANGES: labels
+    # Falls back to full result if model ignores the format
+    ...</div>
+      <h2>Why temperature=0.05 for prompt compression?</h2>
+      <p>Near-zero temperature makes the LLM output near-deterministic. The same prompt should always compress to the same output — variance would make the tool unpredictable for users iterating on their prompts. For compression tasks, we want consistency over creativity. For the conversation explanation endpoint (<code>/explain</code>), we use temperature=0.3 because generating educational text benefits from some variation.</p>
+    </div>`,
 };
-
-setLevel('simple',document.querySelector('.level-btn'),levels);
+setLevel('simple', document.querySelector('.level-btn'), levels);
 </script>
 </body>
 </html>
