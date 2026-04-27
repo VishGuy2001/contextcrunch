@@ -314,11 +314,12 @@ function updateLiveGauges() {
       </div>
       <div class="g-sub">${H<3?'low — compresses well':H<4?'moderate — typical':'high — information-dense'}</div>
     </div>
+    ${pct >= 25 ? `
     <div class="g-card ${spdColor}">
       <div class="g-lbl" style="margin-bottom:.25rem">Response speed</div>
       <div class="lat-bg"><div class="lat-bar ${status}" style="width:${Math.min(pct*1.1,100)}%;background:${status==='safe'?'var(--accent)':status==='warning'?'var(--warn)':'var(--danger)'}"></div></div>
-      <div class="g-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing':'slow — compress now'}</div>
-    </div>
+      <div class="g-sub">~${mult}× baseline · ${status==='safe'?'fast':status==='warning'?'slowing — compress soon':'slow — compress now'}</div>
+    </div>` : ''}
     ${modelWarn}`;
 }
 
@@ -502,10 +503,21 @@ async function runCompress() {
     const r    = await API.compress(text, model, plan);
     compressed = r.compressed;
     document.getElementById('output-section').style.display = 'block';
-    document.getElementById('out-text').textContent    = compressed;
-    document.getElementById('saved-badge').textContent = `${r.tokens_saved.toLocaleString()} tokens saved · ${r.compression_ratio}% shorter`;
-    document.getElementById('out-note').textContent    = `Paste this into a new ${MODELS[model].label} conversation. Same meaning, ${r.tokens_saved.toLocaleString()} fewer tokens.`;
-    document.getElementById('output-section').scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('out-text').textContent = compressed;
+
+    if(r.skipped) {
+      // Text too short — show explanation instead of token savings
+      document.getElementById('saved-badge').textContent = 'Too short to compress';
+      document.getElementById('saved-badge').style.background = 'var(--warn-light)';
+      document.getElementById('saved-badge').style.color = 'var(--warn)';
+      document.getElementById('out-note').textContent = r.instruction || 'Text is too short to compress meaningfully. ContextCrunch works best on conversations with 100+ tokens.';
+    } else {
+      document.getElementById('saved-badge').textContent = `${r.tokens_saved.toLocaleString()} tokens saved · ${r.compression_ratio}% shorter`;
+      document.getElementById('saved-badge').style.background = '';
+      document.getElementById('saved-badge').style.color = '';
+      document.getElementById('out-note').textContent = r.instruction;
+    }
+    document.getElementById('output-section').scrollIntoView({behavior:'smooth', block:'start'});
   } catch(e) { alert('Compression failed: ' + e.message); }
   finally { hideLoading(); }
 }

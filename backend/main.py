@@ -142,12 +142,28 @@ def analyze(req: AnalyzeRequest, request: Request):
 @app.post("/compress")
 @limiter.limit("5/minute")
 def compress_conversation(req: CompressRequest, request: Request):
-    if not req.text or len(req.text.strip()) < 50:
+    if not req.text or len(req.text.strip()) < 20:
         raise HTTPException(400, "Text too short to compress")
     if len(req.text) > MAX_TEXT_CHARS:
         raise HTTPException(400, f"Text too long — max {MAX_TEXT_CHARS:,} characters")
     math_result = compress(req.text, req.model, req.plan, req.threshold)
     llm_result  = generate_compression(req.text, math_result["compressed_math"], req.model, req.plan)
+
+    # Handle case where text was too short to compress meaningfully
+    if llm_result.get("skipped"):
+        return {
+            "original":          req.text,
+            "compressed":        req.text,
+            "original_tokens":   math_result["original_tokens"],
+            "compressed_tokens": math_result["original_tokens"],
+            "tokens_saved":      0,
+            "compression_ratio": 0,
+            "model_used":        "none",
+            "ready_to_paste":    False,
+            "skipped":           True,
+            "instruction":       llm_result.get("reason", "Text too short to compress meaningfully. Try with a longer conversation."),
+        }
+
     return {
         "original":          req.text,
         "compressed":        llm_result["compressed"],

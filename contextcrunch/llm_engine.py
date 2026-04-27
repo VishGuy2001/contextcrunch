@@ -511,27 +511,45 @@ def generate_compression(
     Stage 1 (local, free): sentence-transformers semantic dedup
       Removes sentences near-identical in meaning to prior sentences.
       Uses cosine similarity on 384-dim embeddings. Threshold: 0.88.
+      Skipped if text has fewer than 5 sentences.
 
     Stage 2 (local, free): LLMLingua-2 token pruning
       BERT-based token importance scoring drops low-signal tokens.
       Rate: 75% retention. Runs on CPU in ~200ms.
+      SKIPPED if text is under 200 tokens — LLMLingua degrades short text.
 
     Stage 3 (API): Model-aware fluency rewrite
       Groq Llama 3.3 70B receives already-compressed text.
-      System prompt is tuned to the target model (claude/chatgpt/gemini)
-      using that provider's official prompt engineering guidance.
-      Input is 40-60% smaller so API call is fast and cheap.
+      System prompt is tuned to the target model (claude/chatgpt/gemini).
+      SKIPPED if text is under 50 tokens — nothing meaningful to compress.
 
     math_compressed: last-resort fallback if all three stages fail.
     """
-    # Determine the target model for prompt tuning
-    # We use a generic professional prompt for the Groq/Gemini rewriter
-    # but structure it according to the user's target model conventions
+    word_count  = len(text.split())
+    token_est   = word_count * 1.3  # rough estimate
+
+    # Too short to compress meaningfully — return as-is
+    if word_count < 30:
+        return {
+            "compressed": text,
+            "model_used": "none",
+            "skipped":    True,
+            "reason":     "Text too short to compress — less than 30 words."
+        }
+
     target = model if model in ("claude", "chatgpt", "gemini") else "claude"
 
-    after_dedup  = _remove_semantic_redundancy(text, threshold=0.88)
-    after_lingua = _lingua_compress(after_dedup, rate=0.75)
-    max_tok      = min(len(after_lingua.split()) * 2, 3000)
+    # Stage 1: semantic dedup — only useful with multiple sentences
+    after_dedup = _remove_semantic_redundancy(text, threshold=0.88)
+
+    # Stage 2: LLMLingua — only for longer text (200+ tokens)
+    # On short text it removes grammatically important words, breaking fluency
+    if token_est >= 200:
+        after_lingua = _lingua_compress(after_dedup, rate=0.75)
+    else:
+        after_lingua = after_dedup
+
+    max_tok = min(len(after_lingua.split()) * 2, 3000)
 
     system_prompt  = _get_compression_prompt(target, plan)
     rewrite_prompt = (
