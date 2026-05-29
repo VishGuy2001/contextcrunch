@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Learn the Mathematics of AI Context</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+
+<style>
+.learn-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.lcard{
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  text-decoration: none;
+  color: var(--black);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-premium);
+}
+.lcard:hover{
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.lcard-num{
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  margin-bottom: .6rem;
+  display: block;
+}
+
+.lcard h3{
+  font-family: var(--header);
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: .5rem;
+  color: var(--black);
+}
+
+.lcard p{
+  font-size: .88rem;
+  color: #475569;
+  line-height: 1.65;
+  flex: 1;
+  margin-bottom: 1.25rem;
+}
+
+.lcard-tags{
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.ltag{
+  font-size: .68rem;
+  background: rgba(9, 13, 22, 0.04);
+  color: #475569;
+  padding: .2rem .5rem;
+  border-radius: 4px;
+  font-family: var(--mono);
+}
+
+.lcard-footer{
+  font-size: .78rem;
+  font-family: var(--mono);
+  color: var(--accent);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap 0.2s ease;
+}
+.lcard:hover .lcard-footer {
+  gap: 8px;
+  color: var(--accent-mid);
+}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+  <div class="section" style="padding-bottom:0">
+    <div class="container">
+      <span class="section-label">Learn Hub</span>
+      <h1 class="section-title">The math behind ContextCrunch</h1>
+      <p class="section-sub">Six interactive concepts. Each fully separated into two tailored tracks — simple English for immediate intuition, and technical formulas for engineering implementation. Live demos powered by a real Python backend, showing code alongside equations.</p>
+    </div>
+  </div>
+  <div class="section" style="padding-top:2rem">
+    <div class="container">
+      <div class="learn-grid">
+        
+        <!-- LESSON 1 -->
+        <a href="tokens.html" class="lcard">
+          <span class="lcard-num">Lesson 01</span>
+          <h3>Tokens &amp; context windows</h3>
+          <p>What is a token? Why do sessions fill up even on Pro accounts? How Claude, ChatGPT, and Gemini each tokenize differently. Interactive subword pill offset inspector.</p>
+          <div class="lcard-tags"><span class="ltag">BPE</span><span class="ltag">tiktoken</span><span class="ltag">offsets</span></div>
+          <span class="lcard-footer">Interactive tokenizer →</span>
+        </a>
+        
+        <!-- LESSON 2 -->
+        <a href="embeddings.html" class="lcard">
+          <span class="lcard-num">Lesson 02</span>
+          <h3>Embeddings &amp; similarity</h3>
+          <p>How does AI represent meaning, not just letters? Compute real cosine similarities on sentence pairs and hover matrix cells to visualize vector angle rotations programmatically.</p>
+          <div class="lcard-tags"><span class="ltag">all-MiniLM-L6</span><span class="ltag">cosine sim</span><span class="ltag">vectors</span></div>
+          <span class="lcard-footer">Vector angle visualizer →</span>
+        </a>
+        
+        <!-- LESSON 3 -->
+        <a href="entropy.html" class="lcard">
+          <span class="lcard-num">Lesson 03</span>
+          <h3>Entropy &amp; information</h3>
+          <p>How do we measure information versus redundancy? Paste text to measure Shannon entropy, character probability histograms, and lossless compression limits in real time.</p>
+          <div class="lcard-tags"><span class="ltag">Shannon H</span><span class="ltag">probability</span><span class="ltag">bounds</span></div>
+          <span class="lcard-footer">Entropy calculator →</span>
+        </a>
+        
+        <!-- LESSON 4 -->
+        <a href="quantization.html" class="lcard">
+          <span class="lcard-num">Lesson 04</span>
+          <h3>Quantization precision</h3>
+          <p>Float32 to Int8: 4x smaller storage with less than 0.5% loss. Slide a precision slider to quantize a real 10D vector and view Mean Squared Error and cosine retention.</p>
+          <div class="lcard-tags"><span class="ltag">int8</span><span class="ltag">precision loss</span><span class="ltag">1-bit binary</span></div>
+          <span class="lcard-footer">Precision simulator →</span>
+        </a>
+        
+        <!-- LESSON 5 -->
+        <a href="attention.html" class="lcard">
+          <span class="lcard-num">Lesson 05</span>
+          <h3>Attention &amp; latency</h3>
+          <p>Why does attention scale quadratically? N tokens mean N² calculations. Move a slider to draw a causal-masked turns attention grid heat-map showing softmax decay.</p>
+          <div class="lcard-tags"><span class="ltag">self-attention</span><span class="ltag">O(n²)</span><span class="ltag">causal mask</span></div>
+          <span class="lcard-footer">Latency simulator →</span>
+        </a>
+        
+        <!-- LESSON 6 -->
+        <a href="prompts.html" class="lcard">
+          <span class="lcard-num">Lesson 06</span>
+          <h3>Prompt efficiency</h3>
+          <p>Paste any system instruction or prompt. The Groq Llama 3.3 70B engine rewrites it, highlighting removed polite fillers and redundant clauses in a visual strikethrough diff editor.</p>
+          <div class="lcard-tags"><span class="ltag">Llama 70B</span><span class="ltag">redundancy diff</span><span class="ltag">filler extraction</span></div>
+          <span class="lcard-footer">Prompt diff optimizer →</span>
+        </a>
+        
+      </div>
+    </div>
+  </div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+</body>
+</html>

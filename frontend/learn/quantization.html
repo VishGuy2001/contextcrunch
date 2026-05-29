@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Quantization</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:2.5rem;box-shadow:var(--shadow-premium)}
+.demo-hdr{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.quant-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.qc{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.1rem;text-align:center;transition:transform 0.2s;}
+.qc:hover{transform:translateY(-1px);box-shadow:var(--shadow-premium)}
+.qnum{font-family:var(--mono);font-weight:700;font-size:1.45rem;display:block;margin-bottom:.2rem;color:var(--black)}
+.qlbl{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:.5rem;text-transform:uppercase}
+.qbar-bg{background:var(--border);height:8px;border-radius:100px;overflow:hidden;margin-bottom:.45rem}
+.qbar{height:100%;border-radius:100px;transition:width .5s}
+.qnote{font-size:.68rem;color:var(--muted);font-family:var(--mono);line-height:1.4;display:block}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-family:var(--header);font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#475569;line-height:1.75;margin-bottom:.75rem}
+.formula{background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--black);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#0f172a;color:#f8fafc;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre;border:1px solid #1e293b}
+.insight-box{background:var(--accent-light);border:1px solid rgba(4,120,87,0.15);border-radius:8px;padding:1.1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#064e3b;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:var(--accent)}
+
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem}
+.cost-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.1rem;text-align:center;transition:transform 0.2s;}
+.cost-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-premium)}
+.cost-num{font-family:var(--mono);font-weight:700;font-size:1.45rem;display:block;margin-bottom:.2rem;color:var(--black)}
+.cost-lbl{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:uppercase}
+
+@media(max-width:600px){.quant-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 04</span>
+  <h1 style="font-family:var(--header);font-weight:700;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Quantization</h1>
+  <p style="font-size:1.05rem;color:#475569;line-height:1.75;margin-bottom:2rem;max-width:620px">How do we compress neural network weights and embeddings without losing meaning? The precision tradeoff that makes local ML models practical — and what LLMLingua uses inside ContextCrunch.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+  </div>
+
+  <!-- STORAGE COMPARISON DEMO -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Quantization levels — storage comparison</span>
+      <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">d=384 embedding · 100k vocab</span>
+    </div>
+    <div class="demo-body">
+      <div class="quant-grid">
+        <div class="qc">
+          <span class="qnum">32</span><span class="qlbl">float32 baseline</span>
+          <div class="qbar-bg"><div class="qbar" style="width:100%;background:var(--danger)"></div></div>
+          <span class="qnote">1,536 bytes/vec · 146MB table</span>
+        </div>
+        <div class="qc">
+          <span class="qnum">16</span><span class="qlbl">float16</span>
+          <div class="qbar-bg"><div class="qbar" style="width:50%;background:var(--warn)"></div></div>
+          <span class="qnote">768 bytes · 2× smaller · ~0.1% loss</span>
+        </div>
+        <div class="qc" style="border-color:#10b981">
+          <span class="qnum" style="color:var(--accent)">8</span><span class="qlbl" style="color:var(--accent)">int8 — sweet spot</span>
+          <div class="qbar-bg"><div class="qbar" style="width:25%;background:var(--accent)"></div></div>
+          <span class="qnote">384 bytes · 4× smaller · ~0.5% loss</span>
+        </div>
+        <div class="qc">
+          <span class="qnum">4</span><span class="qlbl">int4</span>
+          <div class="qbar-bg"><div class="qbar" style="width:12%;background:#047857"></div></div>
+          <span class="qnote">192 bytes · 8× smaller · ~2% loss</span>
+        </div>
+        <div class="qc">
+          <span class="qnum">1</span><span class="qlbl">binary</span>
+          <div class="qbar-bg"><div class="qbar" style="width:3%;background:#64748b"></div></div>
+          <span class="qnote">48 bytes · 32× smaller · ~5% loss</span>
+        </div>
+      </div>
+      
+      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:1.25rem">
+        <div style="font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Static example — float32 to int8</div>
+        <div style="font-family:var(--mono);font-size:.85rem;line-height:2;color:var(--black)">
+          Original float32:&nbsp;&nbsp;&nbsp;<strong>0.8734</strong><br>
+          Scale factor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>× 127</strong><br>
+          Quantized int8:&nbsp;&nbsp;&nbsp;&nbsp;<strong>111</strong><br>
+          Dequantized:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>0.874016</strong><br>
+          Error:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>0.000516</strong>&nbsp;(0.059% of original)
+        </div>
+        <div style="font-size:.82rem;color:var(--accent);margin-top:.75rem;font-family:var(--mono)">int8 is the production standard — 4x smaller storage, minimal loss, keeps dot-products matching.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE PRECISION SIMULATOR WIDGET -->
+  <div class="demo-box" style="margin-top:2rem">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Interactive Vector Precision Simulator</span>
+      <span id="precision-badge" style="font-family:var(--mono); font-size:.72rem; font-weight:600; padding:.2rem .6rem; border-radius:100px; background:var(--accent-light); color:var(--accent)">FLOAT32 (Baseline)</span>
+    </div>
+    <div class="demo-body">
+      <p style="font-size: .88rem; color: #475569; margin-bottom: 1.25rem;">
+        See how a 10-dimensional embedding vector is packed, stored, and dequantized. Toggle between formats to measure standard size, Mean Squared Error (MSE), and cosine similarity retention.
+      </p>
+      
+      <!-- Radio precision buttons -->
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <button class="btn level-btn active" id="btn-q-f32" onclick="setPrecision('f32', this)" style="border:1px solid var(--border); font-family:var(--mono); font-size:.72rem;">Float32 (32-bit)</button>
+        <button class="btn level-btn" id="btn-q-f16" onclick="setPrecision('f16', this)" style="border:1px solid var(--border); font-family:var(--mono); font-size:.72rem;">Float16 (16-bit)</button>
+        <button class="btn level-btn" id="btn-q-i8" onclick="setPrecision('i8', this)" style="border:1px solid var(--border); font-family:var(--mono); font-size:.72rem;">Int8 (8-bit)</button>
+        <button class="btn level-btn" id="btn-q-i4" onclick="setPrecision('i4', this)" style="border:1px solid var(--border); font-family:var(--mono); font-size:.72rem;">Int4 (4-bit)</button>
+        <button class="btn level-btn" id="btn-q-bin" onclick="setPrecision('bin', this)" style="border:1px solid var(--border); font-family:var(--mono); font-size:.72rem;">Binary (1-bit)</button>
+      </div>
+
+      <!-- Vector Visualization Bars -->
+      <div style="margin-bottom: 1.5rem;">
+        <div style="font-family: var(--mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;">10-Dimensional Reconstructed Vector Graph</div>
+        <div style="display: flex; height: 120px; align-items: flex-end; gap: 4px; background: #090d16; padding: 1.5rem 1rem 0.5rem; border-radius: 8px; border: 1px solid #1e293b;">
+          <div id="vector-bars-container" style="display:flex; width:100%; height:100%; align-items:flex-end; justify-content:space-around;"></div>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="cost-grid" style="margin-bottom: 1.5rem;">
+        <div class="cost-card"><span class="cost-num" id="sim-size">40 bytes</span><span class="cost-lbl">stored size</span></div>
+        <div class="cost-card"><span class="cost-num" id="sim-mse">0.000000</span><span class="cost-lbl">Mean Squared Error</span></div>
+        <div class="cost-card"><span class="cost-num" id="sim-cosine" style="color:var(--accent)">1.00000</span><span class="cost-lbl">Cosine Similarity</span></div>
+      </div>
+
+      <!-- Data Details list -->
+      <div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-family: var(--mono); font-size: .75rem; line-height: 1.8; overflow-x: auto;">
+        <div style="color:var(--muted); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; margin-bottom: 0.4rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em">Precision Bitstream Details</div>
+        <div style="white-space:nowrap">Original Vector: <span id="v-orig" style="color:#0f172a">[...]</span></div>
+        <div style="white-space:nowrap">Packed Stream:   <span id="v-quant" style="color:#b45309">[...]</span></div>
+        <div style="white-space:nowrap">Reconstructed:   <span id="v-recon" style="color:var(--accent)">[...]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const ORIGINAL_V = [0.8734, -0.4521, 0.1283, -0.9124, 0.6341, -0.1129, 0.7845, -0.3421, 0.5213, -0.6724];
+
+function setPrecision(prec, btn) {
+  // Update buttons
+  document.querySelectorAll('.demo-box .level-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  let badgeText = '';
+  let badgeColor = '';
+  let badgeBg = '';
+  let sizeText = '';
+  let mse = 0;
+  let cosine = 1;
+  let quantValues = [];
+  let reconValues = [];
+
+  if (prec === 'f32') {
+    badgeText = 'FLOAT32 (Baseline)';
+    badgeColor = 'var(--danger)';
+    badgeBg = 'var(--danger-light)';
+    sizeText = '40 bytes';
+    mse = 0;
+    cosine = 1;
+    quantValues = [...ORIGINAL_V];
+    reconValues = [...ORIGINAL_V];
+  } else if (prec === 'f16') {
+    badgeText = 'FLOAT16 (Near Lossless)';
+    badgeColor = 'var(--warn)';
+    badgeBg = 'var(--warn-light)';
+    sizeText = '20 bytes';
+    // Round to 3 decimal places as mock float16 precision
+    reconValues = ORIGINAL_V.map(v => Math.round(v * 1000) / 1000);
+    quantValues = [...reconValues];
+    mse = computeMSE(ORIGINAL_V, reconValues);
+    cosine = computeCosine(ORIGINAL_V, reconValues);
+  } else if (prec === 'i8') {
+    badgeText = 'INT8 (Standard Sweet Spot)';
+    badgeColor = 'var(--accent)';
+    badgeBg = 'var(--accent-light)';
+    sizeText = '10 bytes';
+    // Int8 scale
+    quantValues = ORIGINAL_V.map(v => Math.round(v * 127));
+    reconValues = quantValues.map(v => v / 127);
+    mse = computeMSE(ORIGINAL_V, reconValues);
+    cosine = computeCosine(ORIGINAL_V, reconValues);
+  } else if (prec === 'i4') {
+    badgeText = 'INT4 (Nuanced Loss)';
+    badgeColor = '#1d4ed8';
+    badgeBg = '#eff6ff';
+    sizeText = '5 bytes';
+    // Int4 scale (clamp between -7 and 7)
+    quantValues = ORIGINAL_V.map(v => Math.max(-7, Math.min(7, Math.round(v * 7))));
+    reconValues = quantValues.map(v => v / 7);
+    mse = computeMSE(ORIGINAL_V, reconValues);
+    cosine = computeCosine(ORIGINAL_V, reconValues);
+  } else if (prec === 'bin') {
+    badgeText = 'BINARY (1-Bit compressed)';
+    badgeColor = '#64748b';
+    badgeBg = '#f1f5f9';
+    sizeText = '1.25 bytes';
+    // 1-Bit binary
+    quantValues = ORIGINAL_V.map(v => v >= 0 ? 1 : 0);
+    reconValues = ORIGINAL_V.map(v => v >= 0 ? 0.6 : -0.6); // scale representation
+    mse = computeMSE(ORIGINAL_V, reconValues);
+    cosine = computeCosine(ORIGINAL_V, reconValues);
+  }
+
+  // Update UI Elements
+  const badge = document.getElementById('precision-badge');
+  badge.textContent = badgeText;
+  badge.style.color = badgeColor;
+  badge.style.background = badgeBg;
+  
+  document.getElementById('sim-size').textContent = sizeText;
+  document.getElementById('sim-mse').textContent = mse.toFixed(6);
+  
+  const cosEl = document.getElementById('sim-cosine');
+  cosEl.textContent = cosine.toFixed(5);
+  cosEl.style.color = cosine > 0.99 ? 'var(--accent)' : cosine > 0.95 ? 'var(--warn)' : 'var(--danger)';
+
+  // Print arrays
+  document.getElementById('v-orig').textContent = '[' + ORIGINAL_V.map(v=>v.toFixed(4)).join(', ') + ']';
+  document.getElementById('v-quant').textContent = '[' + quantValues.map(v=>typeof v==='number'&&!Number.isInteger(v)?v.toFixed(3):v).join(', ') + ']';
+  document.getElementById('v-recon').textContent = '[' + reconValues.map(v=>v.toFixed(4)).join(', ') + ']';
+
+  // Draw Bars
+  const container = document.getElementById('vector-bars-container');
+  container.innerHTML = reconValues.map((v, i) => {
+    // Normalization mapping from [-1, 1] to height percents
+    const heightPct = Math.max(5, Math.min(100, Math.round(((v + 1) / 2) * 100)));
+    const color = v >= 0 ? 'var(--accent-mid)' : 'var(--warn)';
+    return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;">
+      <div style="height:${heightPct}%; background:${color}; width:75%; border-radius:3px 3px 0 0; transition:height 0.4s ease, background 0.4s;"></div>
+      <span style="font-size:0.6rem; color:#94a3b8; font-family:var(--mono); margin-top:2px;">d${i+1}</span>
+    </div>`;
+  }).join('');
+}
+
+function computeMSE(a, b) {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += Math.pow(a[i] - b[i], 2);
+  }
+  return sum / a.length;
+}
+
+function computeCosine(a, b) {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+  return denominator > 0 ? dot / denominator : 0;
+}
+
+// Initial draw
+setPrecision('f32', document.getElementById('btn-q-f32'));
+
+const levels = {
+  simple: `
+    <div class="cs">
+      <h2>What is quantization, in plain terms?</h2>
+      <p>Imagine a high-resolution photo stored as a 50MB raw file. Quantization is like saving it as a 5MB JPEG — smaller file, looks nearly identical to the human eye, with a small controlled loss of fine detail. For AI models, we do the same thing to the numbers that represent meaning.</p>
+      <p>Every embedding vector — a sentence turned into 384 numbers — stores each number as a 32-bit float by default. That's very precise (about 7 decimal places). int8 quantization stores the same number using only 8 bits, 4× smaller, with less than 0.5% accuracy loss. For finding similar sentences, that 0.5% doesn't matter.</p>
+      <div class="insight-box">
+        <strong>Why this matters for ContextCrunch</strong>
+        The LLMLingua-2 BERT model that runs locally inside ContextCrunch uses int8 quantization. At full float32 precision it would require ~2.8GB RAM — impractical to run free on every compression request. int8 brings it to ~700MB, making it runnable on CPU at no cost per request. Without quantization, local compression wouldn't be feasible.
+      </div>
+      <h2>The tradeoff at each level</h2>
+      <p><strong>float16 (2× smaller):</strong> Nearly lossless. Standard for GPU inference. What most cloud AI APIs use internally.</p>
+      <p><strong>int8 (4× smaller):</strong> The production standard sweet spot. Used by LLMLingua, GGUF models, and most quantized local models. Less than 0.5% accuracy loss for most tasks.</p>
+      <p><strong>int4 (8× smaller):</strong> Used by llama.cpp Q4 format. Noticeable quality drop on nuanced tasks. Fine for simple inference.</p>
+      <p><strong>Binary 1-bit (32× smaller):</strong> Extreme compression. Significant accuracy loss. Used only in memory-constrained edge deployments.</p>
+    </div>`,
+  technical: `
+    <div class="cs">
+      <h2>Scalar quantization: float32 → int8</h2>
+      <p>The basic operation maps a floating point value from range [-1, 1] to the integer range [-127, 127]. The scale factor is 127. Dequantization reverses the mapping. The quantization error is bounded by 1/(2·scale).</p>
+      <div class="formula">Quantization:
+  q(x) = round(x · 127)          x ∈ [-1, 1]
+  q(x) ∈ [-127, 127]             stored as int8
+
+Dequantization:
+  dq(q) = q / 127                reconstructed float
+
+Quantization error:
+  ε = |x - dq(q(x))| ≤ 1/(2·127) ≈ 0.004 per value
+  MSE across d=384 dims: ~0.004²·384 ≈ 0.006
+
+Memory per embedding vector (d=384):
+  float32:  384 × 4 bytes = 1,536 bytes
+  float16:  384 × 2 bytes =   768 bytes  (2× compression)
+  int8:     384 × 1 byte  =   384 bytes  (4× compression)
+  int4:     384 / 2 bytes =   192 bytes  (8× compression)
+  binary:   384 / 8 bytes =    48 bytes  (32× compression)
+
+Full vocab embedding table (100,277 tokens):
+  float32:  ~146 MB
+  int8:     ~37 MB   ← practical for CPU inference
+  int4:     ~18 MB</div>
+      <div class="code-block">import numpy as np
+
+def scalar_quantize(x: float, scale: float = 127.0) -> tuple:
+    """
+    float32 → int8 scalar quantization.
+    Returns: (quantized int8, dequantized float, reconstruction error)
+    """
+    q   = int(round(x * scale))          # quantize
+    q   = max(-127, min(127, q))         # clamp to int8 range
+    dq  = q / scale                      # dequantize
+    err = abs(x - dq)                    # reconstruction error
+    return q, dq, err
+
+original = 0.8734
+q, dq, err = scalar_quantize(original)
+print(f"Original:    {original}")
+print(f"Quantized:   {q}  (int8, stored as 1 byte vs 4)")
+print(f"Dequantized: {dq}")
+print(f"Error:       {err:.6f}  ({err/original*100:.4f}% of original)")
+
+# Apply to full embedding vector
+def quantize_embedding(emb: np.ndarray, scale=127.0) -> tuple:
+    q    = np.clip(np.round(emb * scale), -127, 127).astype(np.int8)
+    dq   = q.astype(np.float32) / scale
+    mse  = np.mean((emb - dq) ** 2)
+    return q, dq, mse
+
+emb = np.random.randn(384).astype(np.float32)
+emb = emb / np.linalg.norm(emb)   # normalize (as in sentence-transformers)
+q, dq, mse = quantize_embedding(emb)
+print(f"\\nVector MSE: {mse:.6f}")  # typically ~0.00005 for normalized vectors
+print(f"Cosine sim (original vs dequantized): {np.dot(emb, dq):.6f}")  # ~0.9999</div>
+      <h2>Why cosine similarity survives quantization</h2>
+      <p>The key insight is that quantization introduces uniform noise across all dimensions. For cosine similarity — which depends on the angle between vectors, not their exact values — this uniform noise largely cancels out in the dot product. The dot product of two quantized vectors still closely approximates the dot product of the original float32 vectors. This is why int8 quantization works so well for embedding similarity tasks: the metric we care about is robust to the error introduced.</p>
+    </div>`,
+};
+setLevel('simple', document.querySelector('.level-btn'), levels);
+</script>
+</body>
+</html>

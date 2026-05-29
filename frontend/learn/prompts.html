@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Prompt Efficiency</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:2.5rem;box-shadow:var(--shadow-premium)}
+.demo-hdr{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.prompt-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;resize:vertical;min-height:100px;margin-bottom:1.2rem;box-sizing:border-box;transition:all 0.2s;}
+.prompt-textarea:focus{border-color:var(--accent);background:#fafafb;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.2rem}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center;transition:transform 0.2s;}
+.stat-box:hover{transform:translateY(-1px);box-shadow:var(--shadow-premium)}
+.stat-num{display:block;font-family:var(--mono);font-weight:700;font-size:1.4rem;margin-bottom:.2rem;color:var(--black)}
+.stat-lbl{font-size:.72rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase}
+
+.output-box{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;overflow:hidden;display:none;box-shadow:var(--shadow-premium);margin-top:1.5rem}
+.output-hdr{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-size:.82rem;font-family:var(--mono);color:var(--muted);flex-wrap:wrap;gap:.5rem;background:#f8fafc}
+.output-text{padding:1.25rem;font-size:.92rem;line-height:1.75;color:#334155;white-space:pre-wrap;background:white}
+.output-footer{padding:.85rem 1.25rem;background:#f8fafc;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);font-family:var(--mono);line-height:1.4}
+.waste-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin:1.5rem 0}
+.waste-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1.25rem;transition:all 0.2s;}
+.waste-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-premium);border-color:var(--border)}
+.waste-tag{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em}
+.waste-saving{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent);margin-top:.6rem;display:block}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-family:var(--header);font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#475569;line-height:1.75;margin-bottom:.75rem}
+.formula{background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--black);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#0f172a;color:#f8fafc;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre;border:1px solid #1e293b}
+.insight-box{background:var(--accent-light);border:1px solid rgba(4,120,87,0.15);border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#064e3b;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:var(--accent)}
+
+/* Split Pane Diff Styles */
+.diff-container{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.2rem}
+.diff-pane{border:1px solid var(--border);border-radius:8px;padding:1.1rem;background:white;font-size:.88rem;line-height:1.7;min-height:150px}
+.diff-pane-title{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:.4rem;margin-bottom:.6rem;display:block}
+@media(max-width:768px){.diff-container{grid-template-columns:1fr}.waste-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 06</span>
+  <h1 style="font-family:var(--header);font-weight:700;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Prompt efficiency</h1>
+  <p style="font-size:1.05rem;color:#475569;line-height:1.75;margin-bottom:2rem;max-width:620px">Paste any prompt. ContextCrunch rewrites it to say the same thing in fewer tokens — using Groq Llama 3.3 70B and the math of mutual information.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+  </div>
+
+  <!-- LIVE PROMPT IMPROVER -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Live prompt efficiency analyzer &amp; compressor</span>
+      <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">Groq Llama 3.3 70B</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="prompt-textarea" id="prompt-input" placeholder="Paste any prompt you've been sending to Claude, ChatGPT, or Gemini..."></textarea>
+      
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-num" id="p-tokens">0</span><span class="stat-lbl">tokens</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-entropy">—</span><span class="stat-lbl">entropy</span></div>
+        <div class="stat-box"><span class="stat-num" id="p-redundancy">0%</span><span class="stat-lbl">redundancy</span></div>
+      </div>
+      
+      <div style="display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap">
+        <button class="btn btn-accent" id="compress-btn" onclick="compressPrompt()" disabled style="font-size:.85rem;padding:.55rem 1.2rem">Compress prompt →</button>
+        <button class="btn btn-secondary" onclick="loadSample()"  style="font-size:.82rem;padding:.55rem 1rem">Load sample</button>
+        <button class="btn btn-secondary" onclick="loadSample2()" style="font-size:.82rem;padding:.55rem 1rem">Another sample</button>
+      </div>
+      
+      <div id="prompt-loading" style="display:none;font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:1rem">
+        <span class="spin">◌</span> Rewriting with Groq Llama 3.3 70B...
+      </div>
+      
+      <!-- Interactive Split-Pane Visual Diff Container -->
+      <div class="output-box" id="prompt-output">
+        <div class="output-hdr">
+          <span>Optimization Diff Overview</span>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <span style="background:var(--accent-light);color:var(--accent);font-size:.72rem;padding:.25rem .6rem;border-radius:100px;font-family:var(--mono);font-weight:600" id="saved-badge"></span>
+            <button onclick="copyOutput()" style="background:var(--black);color:var(--white);border:none;padding:.4rem 1rem;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:var(--mono)">Copy Optimized</button>
+          </div>
+        </div>
+        
+        <!-- Interactive Split Pane -->
+        <div class="diff-container">
+          <div class="diff-pane">
+            <span class="diff-pane-title">Original (Redundancies Struck Out)</span>
+            <div id="diff-original-panel" style="color:#64748b"></div>
+          </div>
+          <div class="diff-pane" style="border-color:rgba(16,185,129,0.2)">
+            <span class="diff-pane-title" style="color:var(--accent)">Optimized Prompt</span>
+            <div id="output-text" class="output-text" style="padding:0; font-size:.88rem"></div>
+          </div>
+        </div>
+        
+        <div class="output-footer" id="output-changes"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- COMMON WASTE PATTERNS -->
+  <div class="cs">
+    <h2>Common token waste patterns</h2>
+    <div class="waste-grid">
+      <div class="waste-card"><span class="waste-tag">Polite filler</span><div style="font-size:.85rem;color:#475569;line-height:1.5">"I was hoping you could please help me understand and explain in detail..."</div><span class="waste-saving">→ "Explain..." saves ~12 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Redundant context</span><div style="font-size:.85rem;color:#475569;line-height:1.5">"As we discussed, as I mentioned, as you know, as I said before..."</div><span class="waste-saving">→ Remove entirely, saves ~15 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Over-specification</span><div style="font-size:.85rem;color:#475569;line-height:1.5">"...that is helpful and informative and useful and relevant and accurate..."</div><span class="waste-saving">→ Implied, saves ~18 tokens</span></div>
+      <div class="waste-card"><span class="waste-tag">Restating the obvious</span><div style="font-size:.85rem;color:#475569;line-height:1.5">"I am a human user asking you, an AI assistant, to help me with..."</div><span class="waste-saving">→ Implied, saves ~20 tokens</span></div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const S1="I was hoping that you could please help me understand and explain in detail the concept of machine learning and could you also please provide some examples of how it is used in various real world applications today and maybe also could you touch on the history of how it developed over time as well as the future directions it might take going forward if possible thank you so much";
+const S2="I would like to kindly request that you take a look at my code and help me understand what might be going wrong with it and also if you could suggest any improvements or optimizations that might make it run faster or use less memory that would be really helpful and appreciated";
+
+function loadSample(){ document.getElementById('prompt-input').value=S1; analyzePrompt(); }
+// Load first sample on init
+loadSample();
+
+function loadSample2(){ document.getElementById('prompt-input').value=S2; analyzePrompt(); }
+
+function analyzePrompt(){
+  const text=document.getElementById('prompt-input').value;
+  const tokens=TC.estimate(text);
+  const entropy=TC.entropy(text);
+  const red=TC.redundancy(text);
+  document.getElementById('p-tokens').textContent=tokens.toLocaleString();
+  document.getElementById('p-entropy').textContent=entropy;
+  document.getElementById('p-redundancy').textContent=red+'%';
+  document.getElementById('compress-btn').disabled=tokens<5;
+  document.getElementById('prompt-output').style.display='none';
+}
+
+function renderVisualDiff(original, compressed) {
+  const wordsA = original.split(/\s+/);
+  const wordsB = new Set(compressed.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, '')));
+  
+  // Highlighting deleted/redundant words
+  return wordsA.map(w => {
+    const cleanW = w.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (wordsB.has(cleanW) || w.length <= 2) {
+      return `<span>${w} </span>`;
+    } else {
+      return `<del style="background:#fee2e2; color:#b91c1c; text-decoration:line-through; padding:1px 2px; border-radius:3px;">${w}</del> `;
+    }
+  }).join('');
+}
+
+let deb;
+document.getElementById('prompt-input').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(analyzePrompt,200);});
+
+async function compressPrompt(){
+  const text=document.getElementById('prompt-input').value.trim();
+  if(!text) return;
+  document.getElementById('prompt-loading').style.display='block';
+  document.getElementById('compress-btn').disabled=true;
+  document.getElementById('prompt-output').style.display='none';
+  try{
+    const r=await API.improvePrompt(text,'claude','plus');
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent=r.compressed;
+    document.getElementById('saved-badge').textContent=`${r.original_tokens} → ${r.compressed_tokens} tokens · saved ${r.tokens_saved}`;
+    document.getElementById('output-changes').textContent=r.changes.length?'Changes made: '+r.changes.join(' · '):'Prompt compressed.';
+    document.getElementById('p-tokens').textContent=r.compressed_tokens.toLocaleString();
+    
+    // Render the beautiful programmatic visual diff
+    document.getElementById('diff-original-panel').innerHTML = renderVisualDiff(text, r.compressed);
+  }catch(e){
+    document.getElementById('prompt-output').style.display='block';
+    document.getElementById('output-text').textContent='Backend unavailable: '+e.message;
+    document.getElementById('diff-original-panel').textContent=text;
+  }finally{
+    document.getElementById('prompt-loading').style.display='none';
+    document.getElementById('compress-btn').disabled=false;
+  }
+}
+
+function copyOutput(){
+  navigator.clipboard.writeText(document.getElementById('output-text').textContent);
+  event.target.textContent='✓ Copied';
+  setTimeout(()=>event.target.textContent='Copy Optimized',2000);
+}
+
+const levels = {
+  simple: `
+    <div class="cs">
+      <h2>Why does prompt wording affect your session limit?</h2>
+      <p>Every word you type costs tokens. Every token in your prompt gets re-read by the model on every single response. So inefficient prompts don't just cost more per query — they fill your context window faster, which means your session degrades sooner and you hit limits more quickly.</p>
+      <p>Most people use 2–3× more tokens than necessary when prompting AI. Not because they're writing badly — because natural language is full of politeness and hedging that feels right to us but carries zero information for the model. "I was hoping you could please help me understand..." and "Explain..." produce the same output. The first uses 14 tokens. The second uses 1.</p>
+      <div class="insight-box">
+        <strong>What ContextCrunch looks for</strong>
+        Filler openers ("I'd be happy to", "Of course!", "Certainly") — zero information content, always removable.<br><br>
+        Repeated context — if you said something three messages ago, the model already has it. Saying it again wastes tokens without adding anything the model doesn't know.<br><br>
+        Over-specification — "helpful and useful and informative and accurate" is four tokens saying what one word ("helpful") already implies.
+      </div>
+      <h2>What a good prompt looks like</h2>
+      <p>Precise and direct. "Explain machine learning: concept, real-world uses, brief history" says everything that "Could you please help me understand and explain in detail the concept of machine learning and could you also provide examples..." says — in about 60% fewer tokens. The quality of the response is identical. The cost to your session limit is not.</p>
+    </div>`,
+  technical: `
+    <div class="cs">
+      <h2>Mutual information and prompt redundancy</h2>
+      <p>The formal measure of how much information sentence B adds given sentence A is mutual information: I(A;B) = H(A) + H(B) - H(A,B). When I(A;B) is high, the two sentences convey the same information — one is redundant. ContextCrunch uses this as the theoretical basis for deciding what to remove.</p>
+      <div class="formula">Mutual Information:
+  I(A;B) = H(A) + H(B) - H(A,B)
+
+Where:
+  H(A)    = entropy of sentence A alone
+  H(B)    = entropy of sentence B alone
+  H(A,B)  = joint entropy of A and B together
+  I(A;B)  = bits of information A and B share
+
+When I(A;B) ≈ H(A): B contains everything A does → A is removable
+When I(A;B) ≈ 0:    A and B are independent → both carry unique info
+
+Common patterns and their MI:
+  "please" added to any request:        I ≈ 0 bits (no output change)
+  "as I mentioned earlier" restatement: I ≈ H(A) bits (fully redundant)
+  New constraint added to prompt:       I < H(A) bits (keep it)</div>
+      <p>The practical implementation doesn't compute MI directly — it uses semantic similarity as a proxy. High cosine similarity between sentence embeddings correlates with high mutual information. But the MI framing is why the threshold is set at 0.85 for prompt compression (lower than the 0.88 used for conversation compression) — prompts need to be more aggressively compressed since every token costs twice: once in the prompt, once when the model re-reads context.</p>
+      <div class="code-block">from contextcrunch.llm_engine import _remove_semantic_redundancy, _groq
+from contextcrunch.llm_engine import PROMPT_IMPROVEMENT_SYSTEM
+
+def improve_prompt(prompt_text: str) -> dict:
+    """
+    Stage 1: semantic dedup on prompts >50 words.
+    Removes sentences with cosine sim >0.85 to prior sentences.
+    Lower threshold than conversation (0.88) — prompts need tighter compression.
+    """
+    input_text = prompt_text
+    if len(prompt_text.split()) > 50:
+        input_text = _remove_semantic_redundancy(prompt_text, threshold=0.85)
+
+    # Stage 2: Groq Llama 3.3 70B rewrite
+    # temperature=0.05 → near-deterministic output, consistent compression
+    messages = [
+        {"role": "system", "content": PROMPT_IMPROVEMENT_SYSTEM},
+        {"role": "user",   "content": f"Rewrite to use fewer tokens:\\n\\n{input_text}"}
+    ]
+    result = _groq(messages, temperature=0.05, max_tokens=800)
+
+    # Structured output: parses COMPRESSED: and CHANGES: labels
+    # Falls back to full result if model ignores the format
+    ...</div>
+      <h2>Why temperature=0.05 for prompt compression?</h2>
+      <p>Near-zero temperature makes the LLM output near-deterministic. The same prompt should always compress to the same output — variance would make the tool unpredictable for users iterating on their prompts. For compression tasks, we want consistency over creativity. For the conversation explanation endpoint (<code>/explain</code>), we use temperature=0.3 because generating educational text benefits from some variation.</p>
+    </div>`,
+};
+setLevel('simple', document.querySelector('.level-btn'), levels);
+</script>
+</body>
+</html>

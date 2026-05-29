@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Get more from every AI conversation</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+
+<style>
+.hero{
+  padding: 8rem 2rem 5rem;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Premium Brand Title Gradient */
+.brand-title{
+  font-family: var(--header);
+  font-weight: 700;
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
+  margin-bottom: .4rem;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, var(--black) 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-sub{
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+}
+
+/* Headline */
+.hero h1{
+  font-family: var(--header);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-bottom: 1.5rem;
+  color: var(--black);
+  letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+.hero h1 em{
+  color: var(--accent);
+  font-style: normal;
+  background: linear-gradient(120deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.03) 100%);
+  padding: 0 0.4rem;
+  border-radius: 6px;
+}
+
+/* Subtext */
+.hero-sub{
+  font-size: 1.05rem;
+  color: #475569;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  line-height: 1.8;
+}
+
+/* Buttons */
+.hero-actions{
+  display: flex;
+  gap: 1.2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.hero-note{
+  font-size: .75rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-bottom: 4.5rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.hero-image-container {
+  margin: 3rem auto 4rem;
+  max-width: 720px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-premium);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  background: var(--black);
+}
+.hero-image-container:hover {
+  transform: translateY(-4px) scale(1.005);
+  box-shadow: var(--shadow-hover);
+}
+.hero-img {
+  width: 100%;
+  display: block;
+  opacity: 0.92;
+  transition: opacity 0.3s ease;
+}
+.hero-image-container:hover .hero-img {
+  opacity: 1;
+}
+
+/* Premium Stats Widget with Glassmorphism */
+.hero-stats{
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  max-width: 720px;
+  margin: 0 auto;
+  box-shadow: var(--shadow-premium);
+}
+
+.hstat{
+  flex: 1;
+  padding: 1.8rem;
+  transition: transform 0.2s ease;
+}
+.hstat:hover {
+  transform: translateY(-2px);
+}
+
+.hstat-num{
+  font-family: var(--header);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--black);
+}
+
+.hstat-lbl{
+  font-size: .75rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-top: .25rem;
+}
+
+.hstat-div{
+  width: 1px;
+  background: var(--border);
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  .hero-stats{flex-direction: column}
+  .hstat-div{display: none}
+  .hstat { border-bottom: 1px solid var(--border); }
+  .hstat:last-child { border-bottom: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+
+<section class="hero">
+
+  <div class="brand-title">
+    ContextCrunch
+  </div>
+  <div class="brand-sub">
+    understand your AI · reduce token waste · keep context clean
+  </div>
+
+  <h1>Your AI is <em>forgetting you.</em><br>Here's why — and how to fix it.</h1>
+
+  <p class="hero-sub">
+    Every message you send takes up space in your AI's memory. When it fills up, models start losing context or slowing down.
+    ContextCrunch shows you exactly what's happening — and gives you a cleaner, optimized version of your conversation.
+  </p>
+
+  <div class="hero-actions">
+    <a href="tool.html" class="btn btn-primary">Crunch my context →</a>
+    <a href="learn/index.html" class="btn btn-secondary">How it works</a>
+  </div>
+
+  <p class="hero-note">
+    Free · No login · No data stored · Open source · Works with Claude, ChatGPT & Gemini
+  </p>
+
+  <div class="hero-image-container">
+    <img src="assets/context_degradation.png" alt="Context window memory degradation visualization" class="hero-img">
+  </div>
+
+  <div class="hero-stats">
+    <div class="hstat">
+      <div class="hstat-num" style="color:var(--danger)">95%</div>
+      <div class="hstat-lbl">long chats hit limits</div>
+    </div>
+    <div class="hstat-div"></div>
+    <div class="hstat">
+      <div class="hstat-num" style="color:var(--warn)">4×</div>
+      <div class="hstat-lbl">slower at high context</div>
+    </div>
+    <div class="hstat-div"></div>
+    <div class="hstat">
+      <div class="hstat-num" style="color:var(--accent)">30%+</div>
+      <div class="hstat-lbl">redundant tokens</div>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<div id="footer-root"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+
+</body>
+</html>

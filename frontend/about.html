@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — About</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+
+<style>
+.about{
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+}
+
+.about h2{
+  font-family: var(--header);
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin: 2.5rem 0 .75rem;
+  color: var(--black);
+}
+
+.about p{
+  font-size: 1rem;
+  color: #334155;
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+}
+
+.about a{
+  color: var(--accent);
+  font-weight: 500;
+}
+.about a:hover {
+  color: var(--accent-mid);
+}
+
+.highlight{
+  background: var(--accent-light);
+  border: 1px solid rgba(4, 120, 87, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  font-size: .95rem;
+}
+
+.point-list{
+  margin: 1rem 0 1.5rem 1.25rem;
+  color: #334155;
+  font-size: 1rem;
+}
+.point-list li{
+  margin-bottom: .6rem;
+  line-height: 1.6;
+}
+
+.also-built{
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.also-card{
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  min-width: 250px;
+  box-shadow: var(--shadow-premium);
+}
+.also-card:hover{
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.also-name{
+  font-family: var(--header);
+  font-weight: 600;
+  display: block;
+  font-size: .95rem;
+  margin-bottom: .2rem;
+  color: var(--black);
+}
+
+.also-desc{
+  font-size: .78rem;
+  color: var(--muted);
+  font-family: var(--mono);
+  line-height: 1.4;
+  display: block;
+}
+</style>
+</head>
+
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+<div class="about">
+  <span class="section-label">About ContextCrunch</span>
+  <h1 style="font-family:var(--header); font-weight:700; font-size:clamp(2rem,4vw,3.2rem); margin-bottom:1.5rem">Why I built this</h1>
+
+  <p>While working on heavy AI workflows, I started noticing something that wasn’t obvious at first — I wasn’t using these models efficiently.</p>
+
+  <p>Across ChatGPT, Claude, and Gemini, the same behaviors kept showing up. Context would quietly fill up mid-session. Conversations would become highly repetitive. Precious tokens were being burned on formatting and phrases I didn’t actually need.</p>
+
+  <p>Sometimes I’d lose important context completely. Other times I’d hit limits faster than expected — even on paid plans — and either have to wait hours or pay more just to continue.</p>
+
+  <div class="highlight">
+    <strong style="color:var(--accent); font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:.25rem">The Inefficiency Trap</strong>
+    At a small scale, it’s frustrating and slows down your development cycle.<br>
+    At a larger enterprise scale, it compounds into significant API costs very quickly.
+  </div>
+
+  <h2>The problem</h2>
+  <p>Most AI platforms offer zero visibility into how your context window is actually being consumed. There's no standard way to track:</p>
+
+  <ul class="point-list">
+    <li>How much context window you’re consuming in active memory</li>
+    <li>Where semantic redundancies are bloating the thread</li>
+    <li>How efficiently your prompt structures are utilizing token boundaries</li>
+  </ul>
+
+  <p>Most developers use AI tools daily, but have no real insight into what’s happening behind the scenes of self-attention mechanisms.</p>
+
+  <h2>What ContextCrunch does</h2>
+  <p>ContextCrunch was built to make the mathematics of context visible, providing real-time transparency and practical optimization:</p>
+
+  <ul class="point-list">
+    <li>See how efficiently you’re using model memories with visual metrics</li>
+    <li>Identify where token waste is happening on redundant turns</li>
+    <li>Optimize prompt wording to compress size without loss of intent</li>
+    <li>Strikethrough redundancies and rewrite context to keep threads clean</li>
+  </ul>
+
+  <h2>Why this matters</h2>
+  <p>For individuals, it means saving time, avoiding lost context, and learning how to prompt LLMs more effectively.</p>
+
+  <p>For engineering teams and enterprises, it means understanding where AI costs are going — and fixing token inefficiencies before scaling codebases into production.</p>
+
+  <h2>The bigger idea</h2>
+  <p>Most AI platforms focus entirely on output quality.</p>
+  <p>ContextCrunch focuses on the path to get there — making LLM usage more transparent, mathematically intentional, and cost-efficient.</p>
+
+  <p>I built ContextCrunch because I ran into these inefficiencies myself — and there wasn’t a simple tool to measure or solve them. This is both a comprehensive learning playground for anyone working with AI, and a practical utility to optimize your daily workflow.</p>
+
+  <h2>Also built by me</h2>
+  <div class="also-built">
+    <a href="https://researchnu.com" target="_blank" class="also-card">
+      <span class="also-name">ResearchNU</span>
+      <span class="also-desc">7-agent AI research tool · 26 live sources · free</span>
+    </a>
+    <a href="https://bracketgenius.vercel.app/" target="_blank" class="also-card">
+      <span class="also-name">BracketGenius</span>
+      <span class="also-desc">AI bracket predictions</span>
+    </a>
+  </div>
+
+  <h2>Get in touch</h2>
+  <p><a href="https://linkedin.com/in/vishnusekar/" target="_blank">LinkedIn</a> · <a href="https://github.com/VishGuy2001" target="_blank">GitHub</a> · <a href="https://researchnu.com" target="_blank">ResearchNU</a></p>
+  <p style="font-size:.85rem; color:var(--muted); font-family:var(--mono); margin-top:2rem;">If ContextCrunch has helped you, a GitHub star means a lot.</p>
+  <a href="https://github.com/VishGuy2001/contextcrunch" target="_blank" class="btn btn-primary" style="margin-top:.5rem; font-size:.88rem">Star on GitHub →</a>
+</div>
+</main>
+
+<div id="footer-root"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Analyze and Optimize AI Chats</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+
+<style>
+:root {
+  --shadow-soft: 0 6px 18px rgba(0,0,0,0.03);
+}
+
+.tool-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+.tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.reset-btn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: .5rem 1.1rem;
+  font-size: .8rem;
+  font-weight: 500;
+  background: white;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.reset-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+/* Model selector */
+.model-selector {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-premium);
+}
+.model-selector-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fff, #fafafa);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.model-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--black);
+}
+.model-card.active {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  box-shadow: 0 8px 20px rgba(9, 13, 22, 0.15);
+}
+.model-card-name {
+  font-family: var(--header);
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: block;
+}
+.model-card-note {
+  font-family: var(--mono);
+  font-size: .7rem;
+  opacity: .6;
+  margin-top: .15rem;
+  display: block;
+}
+
+/* Plan selector details */
+.plan-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.plan-label {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.plan-btns {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.vbtn {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .5rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.vbtn:hover {
+  border-color: var(--black);
+  transform: translateY(-1px);
+}
+.vbtn.active {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  box-shadow: 0 4px 10px rgba(9, 13, 22, 0.1);
+}
+.vbtn.recommended {
+  border: 1.5px solid var(--accent);
+}
+.vbtn.recommended.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.tokenizer-note {
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--muted);
+  margin-top: .8rem;
+  padding-left: .2rem;
+}
+
+/* Behavior tag */
+.beh-note {
+  background: white;
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-premium);
+  font-size: .88rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+/* Main Grid Layout */
+.tool-grid {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media(max-width:820px){
+  .tool-grid { grid-template-columns: 1fr; }
+}
+
+/* Input pane */
+.input-pane {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-premium);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.pane-hdr {
+  padding: .9rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: .78rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  background: #fafafa;
+}
+.token-live-span {
+  font-weight: 600;
+  color: var(--black);
+  padding: .15rem .45rem;
+  border-radius: 4px;
+}
+.token-live-span.safe { background: #dcfce7; color: var(--accent); }
+.token-live-span.warning { background: #fef3c7; color: var(--warn); }
+.token-live-span.danger { background: #fee2e2; color: var(--danger); }
+
+.main-ta {
+  border: none;
+  padding: 1.25rem;
+  min-height: 250px;
+  font-size: .92rem;
+  line-height: 1.7;
+  outline: none;
+  resize: vertical;
+  background: white;
+}
+.main-ta:focus {
+  background: #fafafb;
+}
+
+/* Premium Drag and Drop Zone */
+.file-zone {
+  border-top: 1px dashed var(--border);
+  padding: 1.2rem;
+  text-align: center;
+  background: #fbfbfa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: .85rem;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+}
+.file-zone:hover {
+  background: #f4f4f3;
+  color: var(--black);
+}
+.file-zone.dragover {
+  background: var(--accent-light);
+  border-top-color: var(--accent-mid);
+  color: var(--accent);
+}
+
+.input-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: .9rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: #fafafa;
+}
+.pane-btn {
+  font-size: .85rem;
+  padding: .55rem 1.2rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: none;
+}
+.pane-btn.btn-secondary {
+  background: #eaeaea;
+  color: #333;
+}
+.pane-btn.btn-secondary:hover:not(:disabled) {
+  background: #dddddd;
+  transform: translateY(-1px);
+}
+
+/* Gauges list */
+.gauges-pane {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+.gauge-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  box-shadow: var(--shadow-premium);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.gauge-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+.gauge-lbl {
+  font-size: .78rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.gauge-val {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: .88rem;
+}
+.gauge-sub {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--muted);
+  margin-top: .4rem;
+}
+
+.bkdn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: .5rem;
+  font-size: .82rem;
+}
+.bkdn-table td {
+  padding: .4rem 0;
+}
+.bkdn-table tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.bkdn-table tr:last-child {
+  border-bottom: none;
+}
+
+/* Output section */
+.out-box {
+  margin-top: 2rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: white;
+  box-shadow: var(--shadow-premium);
+}
+.out-hdr {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+}
+.out-title-text {
+  font-family: var(--header);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.out-text {
+  padding: 1.5rem;
+  font-size: .92rem;
+  line-height: 1.75;
+  background: white;
+  white-space: pre-wrap;
+  min-height: 120px;
+}
+.out-subtext {
+  padding: .75rem 1.5rem;
+  background: var(--accent-light);
+  border-top: 1px solid rgba(4, 120, 87, 0.1);
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--accent);
+}
+
+.model-warn {
+  margin-top: .6rem;
+  background: var(--warn-light);
+  border: 1px solid rgba(180, 83, 9, 0.15);
+  border-radius: 6px;
+  padding: .5rem .75rem;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.warn-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--warn);
+  color: white;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Loading panel */
+#loading {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(9, 13, 22, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#loading.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.loading-card {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  text-align: center;
+  max-width: 320px;
+}
+
+@media(max-width:600px){
+  .model-selector-row { grid-template-columns: 1fr; }
+  .tool-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .reset-btn { align-self: flex-end; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+<div class="tool-wrap">
+
+  <div class="tool-header">
+    <div>
+      <span class="section-label">The core engine</span>
+      <h1 class="section-title">Crunch your context</h1>
+    </div>
+    <button class="reset-btn" id="reset-btn">Reset tool</button>
+  </div>
+
+  <!-- MODEL AND PLAN SELECTOR -->
+  <div class="model-selector">
+    <div class="model-selector-row" id="model-cards">
+      <div class="model-card active" data-model="claude">
+        <span class="model-card-name">Claude</span>
+        <span class="model-card-note">Full context focus</span>
+      </div>
+      <div class="model-card" data-model="chatgpt">
+        <span class="model-card-name">ChatGPT</span>
+        <span class="model-card-note">Adaptive context</span>
+      </div>
+      <div class="model-card" data-model="gemini">
+        <span class="model-card-name">Gemini</span>
+        <span class="model-card-note">Hybrid retrieval</span>
+      </div>
+    </div>
+    
+    <!-- Dynamic Plan Selector -->
+    <div class="plan-selector-container">
+      <span class="plan-label">Select Plan:</span>
+      <div class="plan-btns" id="plan-btns">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+    
+    <div class="tokenizer-note" id="tokenizer-note">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Behavior tag -->
+  <div class="beh-note" id="beh-note">
+    Claude tends to re-read larger portions of context. Inefficient prompts will fill memory faster.
+  </div>
+
+  <!-- MAIN DUAL-PANE TOOL GRID -->
+  <div class="tool-grid">
+
+    <!-- INPUT PANE -->
+    <div class="input-pane">
+      <div class="pane-hdr">
+        <span>Paste conversation</span>
+        <span id="token-live" class="token-live-span safe">0 tokens</span>
+      </div>
+
+      <textarea class="main-ta" id="main-ta" placeholder="Paste conversation turns here (e.g. User: Hello \n Claude: Hi...) or drag a text file..."></textarea>
+
+      <label class="file-zone" id="file-zone" for="file-input">
+        <span>Drag and drop a file here, or click to browse</span>
+        <span style="font-family:var(--mono); font-size:.68rem; color:var(--muted)">Supports PDF, PPTX, DOCX, and TXT</span>
+      </label>
+
+      <input type="file" id="file-input" style="display:none">
+
+      <div class="input-footer" style="flex-direction:column; gap:.8rem;">
+        <div style="display:flex; justify-content:space-between; width:100%">
+          <button class="btn pane-btn btn-secondary" id="analyze-btn" disabled style="width:48%; justify-content:center;">Run Analysis</button>
+          <button class="btn pane-btn btn-accent" id="compress-btn" disabled style="width:48%; justify-content:center;">Compress Conversation</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:.68rem; color:var(--muted); font-family:var(--mono); padding:0 .2rem">
+          <span style="width:48%; text-align:center">Updates gauges & formulas</span>
+          <span style="width:48%; text-align:center">Prunes redundancy & saves tokens</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAUGES PANE -->
+    <div class="gauges-pane" id="gauges-pane">
+      
+      <!-- Welcome Callout Card -->
+      <div class="gauge-card" id="welcome-card" style="border-left:3px solid var(--accent)">
+        <div id="welcome-title" style="font-family:var(--header); font-weight:600; font-size:.9rem; margin-bottom:.3rem">Ready to analyze</div>
+        <p id="welcome-desc" style="font-size:.82rem; color:#475569; line-height:1.6">Paste a conversation or drag in a document on the left. The engine will instantly calculate exact token limits, redundancies, and estimated latency impacts.</p>
+      </div>
+
+      <!-- Memory Used Gauges -->
+      <div class="gauge-card" id="memory-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.45rem">
+          <span class="gauge-lbl">Memory used</span>
+          <span class="gauge-val" id="memory-val">0%</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="memory-bar"></div>
+        </div>
+        <div class="gauge-sub" id="memory-sub">0 / 200,000 tokens</div>
+      </div>
+
+      <!-- Costs estimate Gauges -->
+      <div class="gauge-card" id="cost-card">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <span class="gauge-lbl">Cost estimate</span>
+          <span id="cost-val" style="font-family:var(--mono); font-weight:600; font-size:1.15rem; color:var(--accent)">Free</span>
+        </div>
+        <div class="gauge-sub" id="cost-sub">No cost on free tier</div>
+      </div>
+
+      <!-- Token breakdown Card -->
+      <div class="gauge-card" id="breakdown-card" style="display:none">
+        <div class="gauge-lbl" style="margin-bottom:.4rem">Token breakdown</div>
+        <table class="bkdn-table">
+          <tr><td style="color:var(--muted)">Your messages</td><td id="breakdown-user" style="text-align:right; font-family:var(--mono)">0</td></tr>
+          <tr><td style="color:var(--muted)">AI responses</td><td id="breakdown-ai" style="text-align:right; font-family:var(--mono)">0</td></tr>
+          <tr><td style="color:var(--muted)">Other content</td><td id="breakdown-other" style="text-align:right; font-family:var(--mono)">0</td></tr>
+        </table>
+      </div>
+
+      <!-- Semantic redundancy Gauges -->
+      <div class="gauge-card" id="redundancy-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.45rem">
+          <span class="gauge-lbl">Semantic redundancy</span>
+          <span class="gauge-val" id="redundancy-val">—</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="redundancy-bar"></div>
+        </div>
+        <div class="gauge-sub" id="redundancy-sub">Same meaning repeated · sentence embeddings</div>
+      </div>
+
+      <!-- Token waste Gauges -->
+      <div class="gauge-card" id="waste-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.45rem">
+          <span class="gauge-lbl">Token waste</span>
+          <span class="gauge-val" id="waste-val">—</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="waste-bar"></div>
+        </div>
+        <div class="gauge-sub" id="waste-sub">Filler phrases · repeated tokens</div>
+      </div>
+
+      <!-- Information Density -->
+      <div class="gauge-card" id="density-card">
+        <div class="gauge-lbl" style="margin-bottom:.2rem">Information density</div>
+        <div id="density-val" style="font-family:var(--serif); font-size:1.3rem; color:var(--muted)">—</div>
+        <div class="gauge-sub" id="density-sub">Shannon entropy · bits/char</div>
+      </div>
+
+      <!-- Environmental Impact -->
+      <div class="gauge-card" id="environmental-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.45rem">
+          <span class="gauge-lbl">Environmental footprint</span>
+          <span class="gauge-val" id="env-val" style="color:var(--accent)">0.0g</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="env-bar"></div>
+        </div>
+        <table class="bkdn-table" style="margin-top:.4rem; font-size:.78rem">
+          <tr><td style="color:var(--muted)">Carbon footprint</td><td id="env-co2" style="text-align:right; font-family:var(--mono)">0.0 g CO₂</td></tr>
+          <tr><td style="color:var(--muted)">Electricity consumed</td><td id="env-power" style="text-align:right; font-family:var(--mono)">0.00 Wh</td></tr>
+          <tr><td style="color:var(--muted)">Water evaporated</td><td id="env-water" style="text-align:right; font-family:var(--mono)">0.0 ml</td></tr>
+        </table>
+        <div class="gauge-sub" id="env-sub">Based on average data center cooling and carbon indices</div>
+      </div>
+
+      <!-- Speed Gauges -->
+      <div class="gauge-card" id="speed-card">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.45rem">
+          <span class="gauge-lbl">Response speed</span>
+          <span class="gauge-val" id="speed-val">Fast</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="speed-bar"></div>
+        </div>
+        <div class="gauge-sub" id="speed-sub">Slows quadratically as memory fills — O(n²)</div>
+      </div>
+
+      <!-- Warnings container -->
+      <div id="warnings-container"></div>
+      
+      <!-- Behavior alert box -->
+      <div id="behavior-alert-box" style="background:var(--accent-light); border:1px solid rgba(4,120,87,0.15); border-radius:8px; padding:.8rem; font-size:.78rem; color:#064e3b; line-height:1.6">
+        <strong id="beh-alert-tag">Claude</strong> — <span id="beh-alert-text">Full recall — keeps entire conversation</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- COMPRESSION OUTPUT SECTION -->
+  <div id="output-section" style="display:none">
+    <div class="out-box">
+      <div class="out-hdr">
+        <span class="out-title-text" id="saved-badge">Compressed Output</span>
+        <button class="btn btn-primary" id="copy-btn" style="padding:.4rem 1rem; font-size:.78rem">Copy to Clipboard</button>
+      </div>
+      <div class="out-text" id="out-text"></div>
+      <div class="out-subtext" id="out-note">Paste this into a new chat to resume with optimized context.</div>
+    </div>
+  </div>
+
+  <!-- MATHEMATICAL SCIENTIFIC DETAIL SECTION -->
+  <div id="math-section" style="display:none; margin-top:3rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+      <div>
+        <span class="section-label">Scientific breakdown</span>
+        <h2 style="font-family:var(--header); font-size:1.5rem; margin:0">Information theory & attention scaling</h2>
+      </div>
+      <button class="reset-btn" id="math-minimize-btn" style="margin:0">Minimize</button>
+    </div>
+    
+    <div id="math-content-wrapper" style="margin-top:1.5rem">
+      <div class="level-toggle" style="margin-bottom:1.5rem">
+        <button class="level-btn active" id="math-toggle-simple" data-math-level="simple">Simple Explanation</button>
+        <button class="level-btn" id="math-toggle-technical" data-math-level="technical">Technical Formulas</button>
+      </div>
+      
+      <div id="math-area">
+        <!-- Injected dynamically in tool.js -->
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<!-- Loading Overlay -->
+<div id="loading">
+  <div class="loading-card">
+    <div class="spin" style="font-size:2rem; margin-bottom:1rem; color:var(--accent)">◌</div>
+    <div id="loading-msg" style="font-weight:500; font-size:.9rem; color:var(--black)">Processing...</div>
+    <div style="font-size:.75rem; color:var(--muted); margin-top:.5rem">Calling backend API endpoints</div>
+  </div>
+</div>
+
+<div id="footer-root"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+<script src="js/api.js"></script>
+<script src="js/tool.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+frontend/
+math/
+.github/
+.env
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+.DS_Store
+node_modules/
+key.json
+README.md
+setup.py

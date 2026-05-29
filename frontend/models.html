@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Model Comparison</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/style.css">
+
+<style>
+.models-wrap{
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+}
+
+.models-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.mc{
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-premium);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.mc:hover{
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.mc-top{
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #fbfbfa;
+}
+.mc-top h3{
+  font-family: var(--header);
+  font-weight: 700;
+  font-size: 1.45rem;
+  color: var(--black);
+}
+.mc-company{
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--muted);
+  margin-top: .15rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.plan-tags{
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  align-items: flex-end;
+}
+.plan-tag{
+  font-family: var(--mono);
+  font-size: .68rem;
+  background: rgba(9, 13, 22, 0.04);
+  color: #475569;
+  padding: .2rem .5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.mc-rows{
+  padding: 1rem 1.5rem;
+  flex: 1;
+}
+.mc-row{
+  display: flex;
+  gap: .75rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.mc-row:last-child{
+  border-bottom: none;
+}
+
+.row-key{
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--muted);
+  min-width: 110px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding-top: .15rem;
+  flex-shrink: 0;
+}
+.row-val{
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--black);
+}
+.row-detail{
+  font-size: .82rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-top: .2rem;
+}
+
+.mc-verdict{
+  margin: 0 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+  margin-bottom: .75rem;
+  border: 1px solid var(--border);
+}
+.mc-tip{
+  margin: 0 1.5rem 1.5rem;
+  padding: 1rem;
+  background: var(--accent-light);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(4, 120, 87, 0.1);
+}
+
+.verdict-lbl, .tip-lbl{
+  font-family: var(--mono);
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  display: block;
+  margin-bottom: .3rem;
+  font-weight: 600;
+}
+.verdict-lbl{ color: var(--warn); }
+.tip-lbl{ color: var(--accent); }
+
+@media(max-width:600px){
+  .mc-row { flex-direction: column; gap: .25rem; }
+  .row-key { min-width: auto; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="nav-root"></div>
+
+<main>
+<div class="models-wrap">
+  <span class="section-label">Model comparison</span>
+  <h1 class="section-title">Why each model behaves differently</h1>
+  <p class="section-sub">Claude, ChatGPT, and Gemini all have similar token limits on paper — but behave completely differently in practice. Here's what they don't tell you.</p>
+  
+  <div class="models-grid">
+
+    <!-- CLAUDE -->
+    <div class="mc" style="border-top:3px solid #c4602a">
+      <div class="mc-top">
+        <div>
+          <h3>Claude</h3>
+          <div class="mc-company">Anthropic</div>
+        </div>
+        <div class="plan-tags">
+          <span class="plan-tag">Haiku: 200k</span>
+          <span class="plan-tag">Sonnet: 1M</span>
+          <span class="plan-tag">Opus: 1M</span>
+        </div>
+      </div>
+      <div class="mc-rows">
+        <div class="mc-row">
+          <span class="row-key">Memory</span>
+          <div>
+            <div class="row-val">Full recall</div>
+            <div class="row-detail">Keeps the entire conversation context in active attention. Re-reads the complete history on every message turn.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">At limit</span>
+          <div>
+            <div class="row-val">Honest stop</div>
+            <div class="row-detail">Explicitly flags when you've hit the context window boundary and refuses to take further input.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Truncation</span>
+          <div>
+            <div class="row-val">None</div>
+            <div class="row-detail">Never silently drops or deletes your previous messages. Keeps accuracy high.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Thinking tokens</span>
+          <div>
+            <div class="row-val">Yes (Sonnet/Opus)</div>
+            <div class="row-detail">Internal reasoning tokens count against context limits invisibly, burning context window capacity faster.</div>
+          </div>
+        </div>
+      </div>
+      <div class="mc-verdict">
+        <span class="verdict-lbl">Verdict</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">Most honest. Stops sooner but guarantees accuracy. The best choice for logic and code tasks where precise memory is vital.</div>
+      </div>
+      <div class="mc-tip">
+        <span class="tip-lbl">ContextCrunch tip</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">Use Projects to cache document files. Start fresh threads for new topics. Compress context before memory fill hits 70%.</div>
+      </div>
+    </div>
+
+    <!-- CHATGPT -->
+    <div class="mc" style="border-top:3px solid #1a6b4a">
+      <div class="mc-top">
+        <div>
+          <h3>ChatGPT</h3>
+          <div class="mc-company">OpenAI</div>
+        </div>
+        <div class="plan-tags">
+          <span class="plan-tag">Mini: 32k</span>
+          <span class="plan-tag">Plus: 272k</span>
+          <span class="plan-tag">Pro: 1M</span>
+        </div>
+      </div>
+      <div class="mc-rows">
+        <div class="mc-row">
+          <span class="row-key">Memory</span>
+          <div>
+            <div class="row-val">Silent Truncation</div>
+            <div class="row-detail">Automatically drops oldest messages when context fills. Never warns or informs you that it is doing so.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">At limit</span>
+          <div>
+            <div class="row-val">Degradation</div>
+            <div class="row-detail">The conversation flows smoothly without errors, but responses quietly lose precision on earlier context details.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Truncation</span>
+          <div>
+            <div class="row-val">Active - Silent</div>
+            <div class="row-detail">Removes oldest turns to make room for new prompts. History is lost with no trace in the UI.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Thinking tokens</span>
+          <div>
+            <div class="row-val">Yes (o-series)</div>
+            <div class="row-detail">Reasoning models consume additional hidden tokens to compute logic before outputting text.</div>
+          </div>
+        </div>
+      </div>
+      <div class="mc-verdict">
+        <span class="verdict-lbl">Verdict</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">Smooth and endless, but at the cost of silent amnesia. Good for casual text editing, risky for compound accuracy tasks.</div>
+      </div>
+      <div class="mc-tip">
+        <span class="tip-lbl">ContextCrunch tip</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">Manually copy and re-inject core summaries into long ChatGPT threads to keep crucial information loaded in active window.</div>
+      </div>
+    </div>
+
+    <!-- GEMINI -->
+    <div class="mc" style="border-top:3px solid #1e4f8a">
+      <div class="mc-top">
+        <div>
+          <h3>Gemini</h3>
+          <div class="mc-company">Google</div>
+        </div>
+        <div class="plan-tags">
+          <span class="plan-tag">Lite: 1M</span>
+          <span class="plan-tag">Pro: 1M</span>
+          <span class="plan-tag">Ultra: 2M</span>
+        </div>
+      </div>
+      <div class="mc-rows">
+        <div class="mc-row">
+          <span class="row-key">Memory</span>
+          <div>
+            <div class="row-val">Enormous headroom</div>
+            <div class="row-detail">Supports up to 2 million tokens (AI Ultra / 3.1 Pro), allowing you to upload entire codebases or research books.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">At limit</span>
+          <div>
+            <div class="row-val">Rate limits first</div>
+            <div class="row-detail">On free/unpaid accounts, Studio rate limits (req/min) will trigger long before you can exhaust the token window.</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Truncation</span>
+          <div>
+            <div class="row-val">Minimal</div>
+            <div class="row-detail">Maintains long context but effective recall quality degrades at the very extremes (above 1.5M tokens).</div>
+          </div>
+        </div>
+        <div class="mc-row">
+          <span class="row-key">Thinking tokens</span>
+          <div>
+            <div class="row-val">Reasoning Tiers</div>
+            <div class="row-detail">Newest models support deep reasoning tracks which add internal processing token costs.</div>
+          </div>
+        </div>
+      </div>
+      <div class="mc-verdict">
+        <span class="verdict-lbl">Verdict</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">The undisputed size champion. Extremely efficient unigram tokenizer. Standard pricing doubles above 200k context.</div>
+      </div>
+      <div class="mc-tip">
+        <span class="tip-lbl">ContextCrunch tip</span>
+        <div style="font-size:.83rem;color:#334155;line-height:1.6">Utilize Gemini for huge document analysis. Use prompt caching if doing multiple queries against the same large files to save 90% cost.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<div id="footer-root"></div>
+
+<script src="shared/nav.js"></script>
+<script src="shared/footer.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ContextCrunch — Tokens & Context Windows</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/style.css">
+
+<style>
+.lp{max-width:820px;margin:0 auto;padding:3rem 2rem 5rem}
+.back{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:inline-block;margin-bottom:2rem}
+.demo-box{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:2.5rem;box-shadow:var(--shadow-premium)}
+.demo-hdr{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.demo-hdr-title{font-family:var(--mono);font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.demo-body{padding:1.5rem}
+.demo-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:.85rem;font-size:.9rem;background:var(--white);outline:none;transition:border-color .2s;margin-bottom:1rem;box-sizing:border-box}
+.demo-input:focus{border-color:var(--accent);background:#fafafb;}
+.token-pills{display:flex;flex-wrap:wrap;gap:.4rem;min-height:50px;margin-bottom:1rem;padding:1rem;background:#f8fafc;border-radius:8px;border:1px solid var(--border)}
+.tp{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:.35rem .7rem;font-family:var(--mono);font-size:.78rem;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.05);transition:all 0.15s;}
+.tp:hover{transform:translateY(-1.5px);box-shadow:var(--shadow-hover);border-color:var(--black);}
+.tp.c1{border-color:#b0d4c4;background:#e6f4ea;color:#065f46}
+.tp.c2{border-color:#c4b0d4;background:#f3e8ff;color:#6b21a8}
+.tp.c3{border-color:#d4c4b0;background:#fff7ed;color:#9a3412}
+.color-legend{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;padding:.6rem .85rem;background:#f8fafc;border:1px solid var(--border);border-radius:8px}
+.legend-label{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.75rem;font-family:var(--mono)}
+.legend-swatch{border-radius:4px;padding:.15rem .5rem;font-size:.72rem}
+.legend-note{font-size:.7rem;color:var(--muted);font-family:var(--mono)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.stat-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem;text-align:center;transition:transform 0.2s;}
+.stat-box:hover{transform:translateY(-1px);box-shadow:var(--shadow-premium)}
+.stat-num{display:block;font-family:var(--mono);font-weight:700;font-size:1.4rem;margin-bottom:.2rem;color:var(--black)}
+.stat-lbl{font-size:.72rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase}
+.demo-result{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-top:1rem;min-height:60px}
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.5rem 0}
+.mc{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:transform 0.2s;}
+.mc:hover{transform:translateY(-2px);box-shadow:var(--shadow-premium)}
+.mc-hdr{padding:.85rem 1rem;font-family:var(--header);font-weight:600;font-size:1.05rem;border-bottom:1px solid var(--border)}
+.mc-body{padding:1rem;font-size:.82rem;color:#475569;line-height:1.65}
+.mc-limit{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:.5rem;font-weight:500}
+.mc-tok{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.35rem;font-style:italic}
+.cs{margin-bottom:2.5rem}
+.cs h2{font-family:var(--header);font-size:1.5rem;margin-bottom:.75rem}
+.cs p{font-size:.95rem;color:#475569;line-height:1.75;margin-bottom:.75rem}
+.formula{background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--black);border-radius:8px;padding:1rem 1.25rem;font-family:var(--mono);font-size:.82rem;line-height:1.8;white-space:pre;overflow-x:auto;margin:.75rem 0}
+.code-block{background:#0f172a;color:#f8fafc;border-radius:8px;padding:1.25rem;font-family:var(--mono);font-size:.8rem;line-height:1.7;overflow-x:auto;margin:.75rem 0;white-space:pre;border:1px solid #1e293b}
+.insight-box{background:var(--accent-light);border:1px solid rgba(4,120,87,0.15);border-radius:8px;padding:1rem 1.25rem;margin:.75rem 0;font-size:.88rem;color:#064e3b;line-height:1.7}
+.insight-box strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.35rem;color:var(--accent)}
+@media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}.model-grid{grid-template-columns:1fr}.color-legend{gap:.6rem}}
+</style>
+</head>
+<body>
+<div id="nav-root"></div>
+<main>
+<div class="lp">
+  <a href="index.html" class="back">← Back to Learn</a>
+  <span class="section-label">Learn · 01</span>
+  <h1 style="font-family:var(--header);font-weight:700;font-size:clamp(2rem,4vw,3rem);margin-bottom:1rem">Tokens &amp; context windows</h1>
+  <p style="font-size:1.05rem;color:#475569;line-height:1.75;margin-bottom:2rem;max-width:620px">What is a token? Why do models forget? Each model uses a fundamentally different tokenizer — the same text produces different token counts across Claude, ChatGPT, and Gemini. Type below to see it live.</p>
+
+  <div class="level-toggle" style="margin-bottom:2rem">
+    <button class="level-btn active" onclick="setLevel('simple',this,levels)">Simple</button>
+    <button class="level-btn" onclick="setLevel('technical',this,levels)">Technical</button>
+  </div>
+
+  <!-- LIVE TOKENIZER DEMO -->
+  <div class="demo-box">
+    <div class="demo-hdr">
+      <span class="demo-hdr-title">Live tokenizer — click pills to inspect BPE dimensions</span>
+      <span id="tok-status" style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">Type to tokenize</span>
+    </div>
+    <div class="demo-body">
+      <input class="demo-input" id="tok-input" placeholder="Type anything — a sentence, some code, a question about AI...">
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <select id="tok-model" style="font-family:var(--mono);font-size:.82rem;padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--white);outline:none">
+          <option value="chatgpt">ChatGPT — cl100k BPE (exact)</option>
+          <option value="claude">Claude — Custom BPE (±5%)</option>
+          <option value="gemini">Gemini — SentencePiece (±5%)</option>
+        </select>
+        <button class="btn btn-accent" onclick="runTokenize()" style="font-size:.85rem;padding:.45rem 1.1rem">Tokenize →</button>
+        <button class="btn btn-secondary" onclick="loadTokExample()" style="font-size:.82rem;padding:.45rem .9rem">Load example</button>
+      </div>
+      
+      <div class="token-pills" id="tok-pills">
+        <span style="color:var(--muted);font-size:.85rem;font-family:var(--mono)">Tokens appear here...</span>
+      </div>
+      
+      <!-- Interactive Subword pill inspector panel -->
+      <div id="tok-inspector-details" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:1rem; margin-bottom:1rem; display:none; transition:all 0.2s"></div>
+
+      <div class="color-legend">
+        <span class="legend-label">Color = token boundary:</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#e6f4ea;border:1px solid #b0d4c4">token</span><span style="color:var(--muted)">1st</span></span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#f3e8ff;border:1px solid #c4b0d4">token</span><span style="color:var(--muted)">2nd</span></span>
+        <span class="legend-item"><span class="legend-swatch" style="background:#fff7ed;border:1px solid #d4c4b0">token</span><span style="color:var(--muted)">3rd</span></span>
+        <span class="legend-note">— each colored block = one token</span>
+      </div>
+      
+      <div class="stat-grid">
+        <div class="stat-box"><span class="stat-num" id="tok-chars">0</span><span class="stat-lbl">characters</span></div>
+        <div class="stat-box"><span class="stat-num" id="tok-count">0</span><span class="stat-lbl">tokens</span></div>
+        <div class="stat-box"><span class="stat-num" id="tok-ratio">—</span><span class="stat-lbl">chars/token</span></div>
+      </div>
+      
+      <div class="demo-result" id="tok-result" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- MODEL COMPARISON -->
+  <div class="cs">
+    <h2>How each model tokenizes and handles context</h2>
+    <div class="model-grid">
+      <div class="mc">
+        <div class="mc-hdr" style="border-top:3px solid #c4602a">Claude</div>
+        <div class="mc-body">
+          Full recall up to the context limit — re-reads everything every message. Tells you when it hits the limit. Opus 4.7 uses a dense BPE tokenizer that creates ~35% more tokens for the same words.
+          <div class="mc-limit">Haiku 4.5: 200k · Sonnet 4.6: 1M · Opus 4.7: 1M</div>
+          <div class="mc-tok">Custom BPE · ~3.5 chars/token (Haiku/Sonnet) · ~2.6 (Opus 4.7)</div>
+        </div>
+      </div>
+      <div class="mc">
+        <div class="mc-hdr" style="border-top:3px solid #1a6b4a">ChatGPT</div>
+        <div class="mc-body">
+          Silent truncation — drops oldest messages without telling you when the window fills. The only model with exact public token counts via tiktoken (cl100k).
+          <div class="mc-limit">Free (GPT-5.4 mini): 32k · Plus (GPT-5.4): 272k · Pro: 1.05M</div>
+          <div class="mc-tok">cl100k BPE · ~4.0 chars/token · vocab 100,277</div>
+        </div>
+      </div>
+      <div class="mc">
+        <div class="mc-hdr" style="border-top:3px solid #1e4f8a">Gemini</div>
+        <div class="mc-body">
+          Largest vocabulary = fewest tokens per word, so it uses its window more efficiently. AI Ultra / 3.1 Pro has a massive 2,000,000 token limit.
+          <div class="mc-limit">Lite (3.1 Lite): 1M · Pro (3.5 Flash): 1M · Ultra (3.1 Pro): 2M</div>
+          <div class="mc-tok">SentencePiece unigram · ~4.5 chars/token · vocab 256,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="level-content"></div>
+</div>
+</main>
+<div id="footer-root"></div>
+<script src="../shared/nav.js"></script>
+<script src="../shared/footer.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/learn-base.js"></script>
+<script>
+const EXAMPLES = [
+  'Hello world',
+  'The transformer model processes your entire conversation from the start on every single message.',
+  'def attention(Q, K, V): return softmax(Q @ K.T / sqrt(d)) @ V',
+  'I need you to please help me understand machine learning in detail',
+];
+let exIdx = 0;
+function loadTokExample(){ document.getElementById('tok-input').value = EXAMPLES[exIdx++ % EXAMPLES.length]; runTokenize(); }
+
+function inspectToken(t, idx) {
+  // Compute simulated token ID based on a basic hash of the character sequence
+  let hash = 0;
+  for (let i = 0; i < t.length; i++) hash = t.charCodeAt(i) + ((hash << 5) - hash);
+  const tokenID = Math.abs(hash % 100277); // fit standard BPE vocabulary range
+  
+  // Visualize trailing spaces
+  const showText = t.replace(/ /g, '␣');
+  const byteSize = new Blob([t]).size;
+  
+  const html = `
+    <div style="font-family:var(--mono); font-size:.78rem; color:#0f172a; line-height:1.7;">
+      <div style="font-weight:600; text-transform:uppercase; font-size:.7rem; color:var(--muted); border-bottom:1px solid var(--border); padding-bottom:.25rem; margin-bottom:.5rem; letter-spacing:.05em">Token Pill Inspector Details</div>
+      <div>Token index: <strong>#${idx+1}</strong></div>
+      <div>Token Text Slice: <strong style="background:var(--accent-light); padding:.1rem .3rem; border-radius:4px; color:var(--accent)">${showText}</strong></div>
+      <div>Simulated Vocabulary ID: <strong style="color:#b45309">${tokenID}</strong></div>
+      <div>Byte Size: <strong>${byteSize} bytes</strong></div>
+      <div>Character Length: <strong>${t.length} chars</strong></div>
+      <div style="margin-top:.4rem; font-size:.7rem; color:var(--muted); line-height:1.5">Byte-Pair Encoding (BPE) vocabulary maps this integer coordinate directly to a 1536-dimensional coordinate vector inside the model weights.</div>
+    </div>
+  `;
+  const details = document.getElementById('tok-inspector-details');
+  details.style.display = 'block';
+  details.innerHTML = html;
+}
+
+async function runTokenize(){
+  const text  = document.getElementById('tok-input').value.trim();
+  const model = document.getElementById('tok-model').value;
+  if(!text){ document.getElementById('tok-status').textContent = 'Enter text first'; return; }
+  const planMap = { chatgpt:'plus', claude:'sonnet', gemini:'pro' };
+  const clientEst = TC.estimate(text, model, planMap[model]);
+  document.getElementById('tok-chars').textContent = text.length.toLocaleString();
+  document.getElementById('tok-count').textContent = clientEst.toLocaleString() + ' (est)';
+  document.getElementById('tok-status').textContent = 'Getting exact count...';
+  
+  // Split words by standard splits
+  const parts = text.match(/\w+|[^\w\s]|\s+/g) || [];
+  const tokens = [];
+  for(const p of parts){
+    if(!p.trim()){ if(tokens.length) tokens[tokens.length-1]+=p; else tokens.push(p); }
+    else if(p.length>6){ const m=Math.ceil(p.length/2); tokens.push(p.slice(0,m),p.slice(m)); }
+    else tokens.push(p);
+  }
+  
+  const colors=['c1','c2','c3'];
+  document.getElementById('tok-pills').innerHTML = tokens.filter(t=>t).map((t,i)=>{
+    const cleanT = t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    return `<span class="tp ${colors[i%3]}" onclick="inspectToken('${cleanT}', ${i})">${cleanT}</span>`;
+  }).join('');
+  
+  try {
+    const result = await API.demoTokenize(text, model);
+    document.getElementById('tok-count').textContent  = result.token_count.toLocaleString();
+    document.getElementById('tok-ratio').textContent  = result.chars_per_token;
+    document.getElementById('tok-status').textContent = `${result.token_count} tokens · ${result.chars_per_token} chars/token`;
+    document.getElementById('tok-result').style.display = 'block';
+    document.getElementById('tok-result').innerHTML = `<p style="font-size:.82rem;color:#475569;font-family:var(--mono)">${result.note}</p>`;
+  } catch(e){
+    document.getElementById('tok-status').textContent = 'Backend unavailable — showing estimate';
+    document.getElementById('tok-ratio').textContent  = clientEst>0?(text.length/clientEst).toFixed(1):'—';
+  }
+}
+
+let debounce;
+document.getElementById('tok-input').addEventListener('input', () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => { if(document.getElementById('tok-input').value.length > 3) runTokenize(); }, 600);
+});
+
+const levels = {
+  simple: `
+    <div class="cs">
+      <h2>What exactly is a token?</h2>
+      <p>A token is a chunk of text — not necessarily a whole word. Think of it like the AI reading your message in syllable-sized bites. "Hello" is 1 token. "Unbelievable" might be split into 3. Spaces, punctuation, and capitalization all affect how text gets split.</p>
+      
+      <!-- SIMPLE ILLUSTRATIVE GRAPHIC -->
+      <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin:1.5rem 0; box-shadow:var(--shadow-premium); text-align:center;">
+        <h4 style="font-family:var(--header); font-weight:600; font-size:1.05rem; margin-bottom:1rem; color:var(--black)">Visualizing the Token Conversion Rule</h4>
+        <div style="display:flex; justify-content:center; align-items:center; gap:2rem; flex-wrap:wrap">
+          <div style="background:#ffffff; padding:1rem 1.5rem; border-radius:8px; border:1px solid var(--border); box-shadow:var(--shadow-premium); width:180px;">
+            <span style="font-size:1.8rem; font-weight:700; color:var(--black); display:block">750</span>
+            <span style="font-family:var(--mono); font-size:.7rem; color:var(--muted); text-transform:uppercase">Standard English Words</span>
+          </div>
+          <div style="font-size:1.8rem; color:var(--muted); font-weight:300">➜</div>
+          <div style="background:#ffffff; padding:1rem 1.5rem; border-radius:8px; border:1.5px solid var(--accent); box-shadow:var(--shadow-premium); width:180px;">
+            <span style="font-size:1.8rem; font-weight:700; color:var(--accent); display:block">1,000</span>
+            <span style="font-family:var(--mono); font-size:.7rem; color:var(--accent); text-transform:uppercase">Tokenizer Tokens</span>
+          </div>
+        </div>
+        <p style="font-size:.78rem; color:var(--muted); margin-top:1.2rem; font-family:var(--mono)">Conversion ratio: 1 word ≈ 1.33 tokens. Spaces and punctuation count as distinct tokens.</p>
+      </div>
+
+      <p>Here's the key number to remember: <strong>roughly 750 words ≈ 1,000 tokens</strong> for English prose. Code and technical content use fewer tokens per character because the patterns are more regular. Filler phrases like "I'd be happy to help you with that" burn tokens without adding information.</p>
+      <div class="insight-box">
+        <strong>Why this matters for your session limit</strong>
+        Every time you send a message, the model reads your entire conversation from the beginning — not just the latest message. So a 10,000 token conversation doesn't cost 10,000 tokens to respond to. It costs 10,000 tokens plus whatever the response adds. The window fills up faster than it seems.
+      </div>
+      <h2>Why does the context window matter even on Pro?</h2>
+      <p>Even on Claude Pro with a 1M token window, context degrades before you hit the hard limit. Around 60–70% fill, earlier messages start losing weight in the model's attention — it's not that the information disappears, it's that the model spreads its attention thinner across more tokens and recent content dominates. You see this as the model "forgetting" something you said an hour ago.</p>
+      <p>Compressing your conversation — removing filler, redundancy, and repeated context — stretches the same session further and keeps the important information weighted properly.</p>
+    </div>`,
+  technical: `
+    <div class="cs">
+      <h2>Three different tokenizer algorithms</h2>
+      <p>Token counting is not interchangeable across models. Each uses a different algorithm, training corpus, and vocabulary size — meaning the same sentence produces different token counts depending on which model you're targeting.</p>
+      <div class="formula">Model            Algorithm        Chars/token  Vocab size
+─────────────────────────────────────────────────────
+Claude Haiku/Sonnet  Custom BPE       ~3.5         ~100k
+Claude Opus 4.7      New BPE (+35%)   ~2.6         ~100k+
+ChatGPT (cl100k)     BPE              ~4.0         100,277
+Gemini               SentencePiece    ~4.5         256,000
+
+Same input: "The transformer processes tokens efficiently"
+  Claude Sonnet 4.6:  ~8 tokens
+  ChatGPT Plus:       ~6 tokens
+  Gemini Flash:       ~7 tokens</div>
+      <p>BPE (Byte Pair Encoding) learns merge rules from a training corpus — common subword sequences get merged into single tokens. SentencePiece uses a unigram language model to find the optimal segmentation. Neither is "better" — they encode different priors about language structure.</p>
+      <p>The practical consequence: if you're building something that runs on multiple models, you can't use one model's token count to estimate another's. Always estimate per-model.</p>
+      <div class="code-block">import tiktoken
+
+# ChatGPT — exact count via public tokenizer
+enc    = tiktoken.get_encoding("cl100k_base")
+tokens = enc.encode("Hello, how are you today?")
+print(len(tokens), tokens)  # 7 exact — with token IDs
+
+# Claude — no public tokenizer, estimate from chars
+# Sonnet/Haiku: ~3.5 chars/token
+# Opus 4.7:     ~2.6 chars/token (new tokenizer, 35% more tokens)
+text            = "Hello, how are you today?"
+claude_estimate = len(text) / 3.5   # ~7.1 → 8 tokens
+opus_estimate   = len(text) / 2.6   # ~9.6 → 10 tokens
+
+# Gemini — SentencePiece, largest vocab = fewest tokens/word
+gemini_estimate = len(text) / 4.5   # ~5.6 → 6 tokens</div>
+      <h2>Why attention degrades before the hard limit</h2>
+      <p>Transformer attention is computed over all tokens in the context window. As the window fills, the attention distribution spreads across more token pairs — earlier tokens receive proportionally less attention weight. This is distinct from the hard context limit; it's a gradual quality degradation starting around 60–70% fill that becomes significant before you ever hit the cutoff.</p>
+    </div>`,
+};
+setLevel('simple', document.querySelector('.level-btn'), levels);
+</script>
+</body>
+</html>
